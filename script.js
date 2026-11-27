@@ -26,7 +26,8 @@ function render(){
   if(c===0){const coord=document.createElement("span");coord.className="coord";coord.textContent=String(8-rr);btn.append(coord)}if(rr===7){const coord=document.createElement("span");coord.className="coord file";coord.textContent=files[cc];btn.append(coord)}
   btn.setAttribute("aria-label",sq+(piece?" "+piece.type:""));btn.addEventListener("click",()=>tap(sq));boardEl.append(btn);
  }
- if(pendingAnimations.length)requestAnimationFrame(()=>{for(const item of pendingAnimations){const to=item.img.getBoundingClientRect();item.img.animate([{transform:`translate(${item.from.left-to.left}px,${item.from.top-to.top}px) scale(.92)`},{transform:"translate(0,0) scale(1)"}],{duration:320,easing:"cubic-bezier(.22,.75,.25,1)",fill:"both"}).onfinish=()=>{item.img.style.transform="";}}});\n updateStatus();updateMoves();$("undo").disabled=!game.history().length||botThinking;$("redo").disabled=!redoStack.length||botThinking;updateClockDisplay();
+ if(pendingAnimations.length)requestAnimationFrame(()=>{for(const item of pendingAnimations){const to=item.img.getBoundingClientRect();item.img.animate([{transform:`translate(${item.from.left-to.left}px,${item.from.top-to.top}px) scale(.92)`},{transform:"translate(0,0) scale(1)"}],{duration:320,easing:"cubic-bezier(.22,.75,.25,1)",fill:"both"}).onfinish=()=>{item.img.style.transform="";}}});
+ updateStatus();updateMoves();$("undo").disabled=!game.history().length||botThinking;$("redo").disabled=!redoStack.length||botThinking;updateClockDisplay();
 }
 function tap(sq){
  if(!gameStarted||game.isGameOver()||gameOverByClock||botThinking||game.turn()!=="w")return;
