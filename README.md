@@ -19,6 +19,9 @@ A lightweight Vietnamese chess website where you play against the ChessZuR bot.
 - `script.js` — chessboard and bot logic
 - `assets/logo.svg` — circular ChessZuR logo
 - `assets/icons/` — SVG icons used by action buttons
+- `supabase/` — Supabase project config and private AI Edge Function
+
+See [`supabase/README.md`](supabase/README.md) for project creation and deployment steps.
 
 ## Run locally
 Open `index.html` in a modern browser with internet access (the chess rules library loads from jsDelivr).
