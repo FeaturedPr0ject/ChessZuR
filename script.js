@@ -22,11 +22,11 @@ function render(){
   btn.className="square "+((rr+cc)%2===0?"light":"dark");btn.dataset.square=sq;
   if(sq===selected)btn.classList.add("selected");if(lastMove&&(sq===lastMove.from||sq===lastMove.to))btn.classList.add("last");if(sq===checkSq)btn.classList.add("check");
   const target=targets.find(m=>m.to===sq);if(target)btn.classList.add(piece?"capture":"legal");
-  if(piece){const img=document.createElement("img");img.className="piece "+(piece.color==="w"?"white":"black");img.src=`assets/pieces/${piece.color==="w"?"white":"black"}-${pieceNames[piece.type]}.svg`;img.alt=piece.type;img.draggable=false;btn.append(img);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from))pendingAnimations.push({img,from:oldSquares.get(moveAnimation.from)});}
+  if(piece){const img=document.createElement("img");img.className="piece "+(piece.color==="w"?"white":"black");img.src=`assets/pieces/${piece.color==="w"?"white":"black"}-${pieceNames[piece.type]}.svg`;img.alt=piece.type;img.draggable=false;btn.append(img);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from)){img.style.visibility="hidden";pendingAnimations.push({img,from:oldSquares.get(moveAnimation.from)})}}
   if(c===0){const coord=document.createElement("span");coord.className="coord";coord.textContent=String(8-rr);btn.append(coord)}if(rr===7){const coord=document.createElement("span");coord.className="coord file";coord.textContent=files[cc];btn.append(coord)}
   btn.setAttribute("aria-label",sq+(piece?" "+piece.type:""));btn.addEventListener("click",()=>tap(sq));boardEl.append(btn);
  }
- if(pendingAnimations.length)requestAnimationFrame(()=>{for(const item of pendingAnimations){const to=item.img.getBoundingClientRect();item.img.animate([{transform:`translate(${item.from.left-to.left}px,${item.from.top-to.top}px) scale(.92)`},{transform:"translate(0,0) scale(1)"}],{duration:320,easing:"cubic-bezier(.22,.75,.25,1)",fill:"both"}).onfinish=()=>{item.img.style.transform="";}}});
+ if(pendingAnimations.length)requestAnimationFrame(()=>{for(const item of pendingAnimations){const to=item.img.getBoundingClientRect();const dx=item.from.left-to.left,dy=item.from.top-to.top;item.img.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"translate(0,0)"}],{duration:10,easing:"linear",fill:"both"}).onfinish=()=>{item.img.style.transform="";};item.img.style.visibility="visible";}});
  updateStatus();updateMoves();$("undo").disabled=!game.history().length||botThinking;$("redo").disabled=!redoStack.length||botThinking;updateClockDisplay();
 }
 function tap(sq){
