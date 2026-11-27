@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#101512">
 <title>ChessZuR — Cờ vua</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="features.css">
 <link rel="stylesheet" href="mobile.css" media="screen and (max-width: 600px) and (pointer: coarse), screen and (max-width: 900px) and (max-height: 500px) and (orientation: landscape) and (pointer: coarse)">
 </head>
 <body>
@@ -41,7 +42,7 @@
 <div class="clock-row bottom-clock"><div class="clock active" id="whiteClock"><span class="clock-label">BẠN · TRẮNG</span><strong id="whiteTime">05:00</strong></div><span class="clock-increment" id="clockIncrement">+0 giây / nước</span></div>
 </section>
 <aside class="side">
-<section class="card"><h2>Trận đấu</h2><div class="status"><div class="status-icon" id="statusIcon">♟</div><div><strong id="statusTitle">Trắng đến lượt</strong><small id="statusDesc">Chọn quân để bắt đầu</small></div></div><div class="actions"><button class="btn primary" id="newGame">Ván mới</button><button class="btn" id="undo">↶ Đi lại</button><button class="btn" id="redo" disabled>↷ Làm lại</button><button class="btn" id="flip">Lật bàn cờ</button><button class="btn" id="copyFen">Sao chép FEN</button></div><p class="note game-settings" id="gameSettings"></p></section>
+<section class="card"><h2>Trận đấu</h2><div class="status"><div class="status-icon" id="statusIcon">♟</div><div><strong id="statusTitle">Trắng đến lượt</strong><small id="statusDesc">Chọn quân để bắt đầu</small></div></div><div class="actions"><button class="btn primary" id="newGame">Ván mới</button><button class="btn" id="undo">↶ Đi lại</button><button class="btn" id="redo" disabled>↷ Làm lại</button><button class="btn" id="flip">Lật bàn cờ</button><button class="btn" id="copyFen">Sao chép FEN</button></div><p class="note game-settings" id="gameSettings"></p><div class="feature-actions"><button class="btn" id="settingsButton">⚙ Cá nhân hóa</button><button class="btn" id="historyButton">▤ Lịch sử ván</button></div><p class="cloud-status" id="cloudStatus">Đang kết nối kho lưu trữ…</p></section>
 <section class="card"><h2>Nước đi</h2><div class="moves" id="moves"><div class="empty">Nước đi sẽ hiện ở đây.</div></div></section>
 <section class="card"><h2>Luật chơi</h2><p class="note">Bạn cầm quân Trắng và đấu với bot ChessZuR bằng quân Đen. Chạm quân rồi chọn ô đích. Bot tự đi sau lượt của bạn. Hỗ trợ nhập thành, bắt tốt qua đường và phong cấp.</p></section>
 </aside>
@@ -57,6 +58,24 @@
    <button class="promotion-option" data-promotion="b"><img src="assets/pieces/white-bishop.svg" alt=""><strong>Tượng</strong><small>Bishop</small></button>
    <button class="promotion-option" data-promotion="n"><img src="assets/pieces/white-knight.svg" alt=""><strong>Mã</strong><small>Knight</small></button>
   </div>
+ </section>
+</div>
+
+<div class="feature-overlay" id="settingsDialog" hidden>
+ <section class="feature-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="feature-dialog-head"><div><p class="eyebrow">CHESSZUR · SETTINGS</p><h2 id="settingsTitle">Cá nhân hóa</h2></div><button class="feature-close" data-close="settingsDialog" aria-label="Đóng">×</button></div>
+  <label class="feature-field">Màu bàn cờ<select id="boardTheme"><option value="forest">Rừng xanh</option><option value="classic">Cổ điển</option><option value="blue">Đại dương</option><option value="purple">Tím đêm</option></select></label>
+  <label class="feature-field">Kiểu quân cờ<select id="pieceStyle"><option value="svg">SVG cổ điển</option><option value="unicode">Unicode tối giản</option></select></label>
+  <label class="feature-toggle"><span><strong>Âm thanh</strong><small>Tiếng đi quân, ăn quân và chiếu vua</small></span><input id="soundEnabled" type="checkbox" checked></label>
+  <label class="feature-toggle"><span><strong>Rung điện thoại</strong><small>Phản hồi nhẹ khi thao tác trên thiết bị hỗ trợ</small></span><input id="vibrationEnabled" type="checkbox" checked></label>
+  <p class="feature-hint">Tùy chọn được lưu trên thiết bị này.</p>
+ </section>
+</div>
+<div class="feature-overlay" id="historyDialog" hidden>
+ <section class="feature-dialog history-dialog" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+  <div class="feature-dialog-head"><div><p class="eyebrow">CHESSZUR · ARCHIVE</p><h2 id="historyTitle">Lịch sử ván đấu</h2></div><button class="feature-close" data-close="historyDialog" aria-label="Đóng">×</button></div>
+  <div class="history-list" id="historyList"><p class="feature-hint">Chưa có ván đấu hoàn thành.</p></div>
+  <div class="history-footer"><span id="historyCount">0 ván</span><button class="btn" id="clearHistory">Xóa lịch sử</button></div>
  </section>
 </div>
 <div class="footer">ChessZuR · Bạn đấu với bot · Không cần tài khoản</div>
