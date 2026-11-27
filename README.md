@@ -13,6 +13,13 @@ A lightweight Vietnamese chess website where you play against the ChessZuR bot.
 - Copy current position as FEN
 - Responsive dark interface in Vietnamese
 
+## Project structure
+- `index.html` — page structure
+- `styles.css` — layout and visual styles
+- `script.js` — chessboard and bot logic
+- `assets/logo.svg` — circular ChessZuR logo
+- `assets/icons/` — SVG icons used by action buttons
+
 ## Run locally
 Open `index.html` in a modern browser with internet access (the chess rules library loads from jsDelivr).
 
