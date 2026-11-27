@@ -9,15 +9,38 @@
 </head>
 <body>
 <header><div class="brand"><div class="logo"><img src="assets/logo.svg" alt="ChessZuR"></div><div><h1>ChessZuR</h1><p>Play. Think. Win.</p></div></div><div class="pill">♟ Cờ vua · miễn phí</div></header>
-<main>
+<section class="start-screen" id="startScreen">
+ <div class="start-card">
+  <div class="start-mark">♞</div><p class="eyebrow">CHESSZUR · PLAY YOUR GAME</p>
+  <h2>Sẵn sàng cho ván đấu?</h2><p class="start-desc">Bạn cầm quân Trắng. Hãy chọn cấp độ AI và thời gian trước khi bắt đầu.</p>
+  <div class="setup-section"><div class="setup-heading"><span>Cấp độ đối thủ</span><output id="startStrengthValue">500 · Huấn luyện viên AI</output></div>
+   <input id="strength" class="strength-slider" type="range" min="0" max="1000" step="1" value="500">
+   <div class="strength-scale"><span>0–299<br>Thực tập sinh</span><span>300–499<br>Người mới</span><span>500–799<br>Huấn luyện viên</span><span>800–1000<br>Cao thủ</span></div>
+  </div>
+  <div class="setup-section"><div class="setup-heading"><span>Thời gian mỗi bên</span><span class="setup-hint">Chọn chế độ</span></div>
+   <div class="time-options" id="timeOptions">
+    <button class="time-option" data-time="60" data-increment="0"><strong>1</strong><span>Phút</span><small>Bullet</small></button>
+    <button class="time-option" data-time="180" data-increment="0"><strong>3</strong><span>Phút</span><small>Blitz</small></button>
+    <button class="time-option active" data-time="300" data-increment="0"><strong>5</strong><span>Phút</span><small>Blitz</small></button>
+    <button class="time-option" data-time="600" data-increment="0"><strong>10</strong><span>Phút</span><small>Rapid</small></button>
+    <button class="time-option" data-time="900" data-increment="10"><strong>15+10</strong><span>Phút + giây</span><small>Rapid</small></button>
+   </div>
+  </div>
+  <button class="start-button" id="startGame">Bắt đầu chơi <span>→</span></button>
+  <p class="start-footnote">Đồng hồ bắt đầu khi bạn nhấn nút này.</p>
+ </div>
+</section>
+<main id="gameView" hidden>
 <section class="board-wrap">
-<div class="player"><div class="avatar"><img src="assets/pieces/black-king.svg" alt=""></div><div class="player-info"><div class="player-name">ChessZuR Bot</div><div class="player-sub">Đối thủ AI · Đen</div></div><span class="turn" id="blackTurn">ĐEN</span></div>
+<div class="clock-row"><div class="clock" id="blackClock"><span class="clock-label">CHESSZUR BOT</span><strong id="blackTime">05:00</strong></div><span class="clock-mode" id="clockMode">5 phút</span></div>
+<div class="player"><div class="avatar"><img src="assets/pieces/black-king.svg" alt=""></div><div class="player-info"><div class="player-name">ChessZuR Bot</div><div class="player-sub" id="blackPlayerSub">Đối thủ AI · Đen</div></div><span class="turn" id="blackTurn">ĐEN</span></div>
 <div class="board" id="board" aria-label="Bàn cờ vua"></div>
 <div class="board-footer"><span id="orientation">♙ Bạn đi trước</span><span>ChessZuR</span></div>
 <div class="player" style="padding:12px 2px 2px"><div class="avatar"><img src="assets/pieces/white-king.svg" alt=""></div><div class="player-info"><div class="player-name">Bạn</div><div class="player-sub">Người chơi · Trắng</div></div><span class="turn" id="whiteTurn">TRẮNG</span></div>
+<div class="clock-row bottom-clock"><div class="clock active" id="whiteClock"><span class="clock-label">BẠN · TRẮNG</span><strong id="whiteTime">05:00</strong></div><span class="clock-increment" id="clockIncrement">+0 giây / nước</span></div>
 </section>
 <aside class="side">
-<section class="card"><h2>Trận đấu</h2><div class="strength-head"><label class="note" for="strength">Độ khó bot</label><output id="strengthValue" for="strength">500 · Huấn luyện viên AI</output></div><input id="strength" class="strength-slider" type="range" min="0" max="1000" step="1" value="500"><div class="strength-scale"><span>0–299<br>Thực tập sinh AI</span><span>300–499<br>Người mới AI</span><span>500–799<br>Huấn luyện viên AI</span><span>800–1000<br>Cao thủ cờ AI</span></div><div class="status"><div class="status-icon" id="statusIcon">♟</div><div><strong id="statusTitle">Trắng đến lượt</strong><small id="statusDesc">Chọn quân để bắt đầu</small></div></div><div class="actions"><button class="btn primary" id="newGame"><img class="button-icon" src="assets/icons/plus.svg" alt=""> Ván mới</button><button class="btn" id="undo"><img class="button-icon" src="assets/icons/undo.svg" alt=""> Đi lại</button><button class="btn" id="flip"><img class="button-icon" src="assets/icons/flip.svg" alt=""> Lật bàn cờ</button><button class="btn" id="copyFen"><img class="button-icon" src="assets/icons/copy.svg" alt=""> Sao chép FEN</button></div></section>
+<section class="card"><h2>Trận đấu</h2><div class="status"><div class="status-icon" id="statusIcon">♟</div><div><strong id="statusTitle">Trắng đến lượt</strong><small id="statusDesc">Chọn quân để bắt đầu</small></div></div><div class="actions"><button class="btn primary" id="newGame">Ván mới</button><button class="btn" id="undo">↶ Đi lại</button><button class="btn" id="redo" disabled>↷ Làm lại</button><button class="btn" id="flip">Lật bàn cờ</button><button class="btn" id="copyFen">Sao chép FEN</button></div><p class="note game-settings" id="gameSettings"></p></section>
 <section class="card"><h2>Nước đi</h2><div class="moves" id="moves"><div class="empty">Nước đi sẽ hiện ở đây.</div></div></section>
 <section class="card"><h2>Luật chơi</h2><p class="note">Bạn cầm quân Trắng và đấu với bot ChessZuR bằng quân Đen. Chạm quân rồi chọn ô đích. Bot tự đi sau lượt của bạn. Hỗ trợ nhập thành, bắt tốt qua đường và phong cấp.</p></section>
 </aside>
