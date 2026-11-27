@@ -1,60 +1,43 @@
-# ChessZuR Supabase setup
+# ChessZuR — Supabase + Gemini
 
-This folder contains the Supabase Edge Function that connects ChessZuR to a private AI API.
+This folder contains the Supabase Edge Function used by the GitHub Pages frontend to request a chess move from Gemini. The Gemini API key stays on the server in Supabase Secrets.
 
-## 1. Create a Supabase project
+## Supabase project
 
-Use the same setup flow from the earlier Supabase setup:
-1. Open https://supabase.com/dashboard.
-2. Create or select an Organization.
-3. Choose the Free plan.
-4. Select **New project**.
-5. For this project, use the name **ChessZuR** and choose **Singapore** as the region.
-6. Set and save the database password somewhere safe.
+- Project ref: `rbdlfzoqwuchkjbgzmjb`
+- Project URL: `https://rbdlfzoqwuchkjbgzmjb.supabase.co`
+- Region: Singapore
 
-Create a separate ChessZuR project; do not put this prototype into the older SWGC Chat project.
+## Gemini API key
 
-## 2. Install and link Supabase CLI
+1. Open [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Create a Gemini API key.
+3. In Supabase Dashboard, open **Edge Functions → Secrets**.
+4. Add:
+   - `GEMINI_API_KEY` = your private Gemini API key
+   - `GEMINI_MODEL` = `gemini-3.8-flash` (optional; can be changed to a model enabled for your API key)
 
-Install the Supabase CLI using the official instructions:
-https://supabase.com/docs/guides/cli
+Never commit the Gemini key to GitHub or put it in `index.html` / `script.js`.
 
-From the repository root, run:
+## Deploy
+
+From the repository root, install and authenticate the Supabase CLI, then run:
 
 ```bash
 supabase login
-supabase link --project-ref YOUR_PROJECT_REF
+supabase link --project-ref rbdlfzoqwuchkjbgzmjb
+supabase functions deploy chess-ai
 ```
 
-The project ref is shown in the Supabase Dashboard project URL or Project Settings.
-
-## 3. Add private AI provider secrets
-
-The Edge Function expects an OpenAI-compatible Chat Completions API.
-
-```bash
-supabase secrets set AI_API_URL=https://YOUR_PROVIDER/v1/chat/completions
-supabase secrets set AI_API_KEY=YOUR_PRIVATE_API_KEY
-supabase secrets set AI_MODEL=YOUR_MODEL_NAME
-```
-
-Never put the private AI API key in `index.html`, `script.js`, GitHub Pages, or any public file.
-
-## 4. Deploy the function
-
-```bash
-supabase functions deploy chess-ai --no-verify-jwt
-```
+The function is configured with `verify_jwt = false` because the static GitHub Pages app uses a publishable key rather than a user JWT. The function checks the supplied `apikey` against the project's configured publishable key and restricts browser origins to the ChessZuR GitHub Pages site. A publishable key is public by design; this is not a substitute for rate limiting or abuse controls.
 
 Function URL:
 
 ```
-https://YOUR_PROJECT_REF.supabase.co/functions/v1/chess-ai
+https://rbdlfzoqwuchkjbgzmjb.supabase.co/functions/v1/chess-ai
 ```
 
-## 5. Request format
-
-Send a POST request with the current FEN, SAN move history, and legal SAN moves:
+## Request
 
 ```json
 {
@@ -64,10 +47,10 @@ Send a POST request with the current FEN, SAN move history, and legal SAN moves:
 }
 ```
 
-The function returns one selected move:
+Response:
 
 ```json
-{ "move": "Nf3" }
+{ "move": "Nf3", "model": "gemini-3.8-flash" }
 ```
 
-The move must exactly match one of the legal moves supplied by the frontend. The frontend integration and provider selection are intentionally left for the next step; this scaffold does not expose API secrets.
+The frontend must validate the returned SAN move with chess.js before applying it. Gemini is a language model, not a dedicated chess engine, so invalid responses should fall back to the local bot.
