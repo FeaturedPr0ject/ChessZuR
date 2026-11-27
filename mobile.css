@@ -75,7 +75,6 @@ main{width:100%;max-width:580px;margin:0 auto;padding:4px 10px calc(20px + env(s
 .promotion-option img{width:clamp(42px,13vw,58px);height:clamp(42px,13vw,58px)}
 .promotion-option strong{font-size:13px}
 .promotion-option small{font-size:9px}
-}
 @media(max-width:380px){
 header{padding-left:11px;padding-right:11px}
 main{padding-left:7px;padding-right:7px}
