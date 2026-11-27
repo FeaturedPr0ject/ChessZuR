@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const boardEl=$("board"),movesEl=$("moves");
 const pieceNames={k:"king",q:"queen",r:"rook",b:"bishop",n:"knight",p:"pawn"};
 let selected=null,targets=[],flipped=false,lastMove=null,botThinking=false,animateMove=null;
-let gameStarted=false,gameOverByClock=false,clockBase=300,increment=0,remaining={w:300000,b:300000},clockStamp=0,clockTimer=null,redoStack=[];
+let gameStarted=false,gameOverByClock=false,allowUnload=false,clockBase=300,increment=0,remaining={w:300000,b:300000},clockStamp=0,clockTimer=null,redoStack=[];
 const files="abcdefgh";
 function squareName(r,c){return files[c]+(8-r)}
 function formatTime(ms){const total=Math.max(0,Math.ceil(ms/1000)),m=Math.floor(total/60),s=total%60;return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
@@ -66,6 +66,6 @@ function requestRedo(){if(botThinking||!redoStack.length)return;if(!confirm("B�
 $("undo").addEventListener("click",requestUndo);$("redo").addEventListener("click",requestRedo);
 $("flip").addEventListener("click",()=>{flipped=!flipped;render()});
 $("copyFen").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(game.fen());$("copyFen").textContent="Đã sao chép!";setTimeout(()=>$("copyFen").textContent="Sao chép FEN",1300)}catch(e){prompt("Sao chép FEN:",game.fen())}});
-window.addEventListener("beforeunload",e=>{if(gameStarted&&game.history().length&&!game.isGameOver()&&!gameOverByClock){e.preventDefault();e.returnValue=""}});
-window.addEventListener("keydown",e=>{if(gameStarted&&game.history().length&&(e.key==="F5"&&(e.ctrlKey||e.metaKey)||e.key==="r"&&(e.ctrlKey||e.metaKey))){e.preventDefault();if(confirm("Bạn đang trong ván đấu. Tải lại trang sẽ làm mất ván hiện tại. Bạn có chắc chắn muốn tải lại?")){stopClock();location.reload()}}});
+window.addEventListener("beforeunload",e=>{if(gameStarted&&!allowUnload&&!game.isGameOver()&&!gameOverByClock){e.preventDefault();e.returnValue=""}});
+window.addEventListener("keydown",e=>{if(gameStarted&&(e.key==="F5"||e.key==="r"&&(e.ctrlKey||e.metaKey))){e.preventDefault();if(confirm("Bạn đang trong ván đấu. Tải lại trang sẽ làm mất ván hiện tại. Bạn có chắc chắn muốn tải lại?")){allowUnload=true;stopClock();location.reload()}}});
 render();
