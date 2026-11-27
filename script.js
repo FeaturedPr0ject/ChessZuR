@@ -29,12 +29,13 @@ function render(){
  if(pendingAnimations.length)requestAnimationFrame(()=>{for(const item of pendingAnimations){const to=item.img.getBoundingClientRect();const dx=item.from.left-to.left,dy=item.from.top-to.top;item.img.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:"translate(0,0)"}],{duration:10,easing:"linear",fill:"both"}).onfinish=()=>{item.img.style.transform="";};item.img.style.visibility="visible";}});
  updateStatus();updateMoves();$("undo").disabled=!game.history().length||botThinking;$("redo").disabled=!redoStack.length||botThinking;updateClockDisplay();
 }
-function tap(sq){
+function choosePromotion(){return new Promise(resolve=>{const dialog=$("promotionDialog");const finish=value=>{dialog.hidden=true;dialog.removeEventListener("click",handleClick);resolve(value)};const handleClick=e=>{const option=e.target.closest("[data-promotion]");if(option)finish(option.dataset.promotion)};dialog.addEventListener("click",handleClick);dialog.hidden=false;dialog.querySelector("[data-promotion=q]").focus()})}
+async function tap(sq){
  if(!gameStarted||game.isGameOver()||gameOverByClock||botThinking||game.turn()!=="w")return;
  const p=game.get(sq);
  if(selected&&targets.some(m=>m.to===sq)){
   const from=selected,moves=targets.filter(m=>m.to===sq);let promotion;
-  if(moves.some(m=>m.promotion)){const choice=(prompt("Phong cấp thành: q = Hậu, r = Xe, b = Tượng, n = Mã","q")||"q").toLowerCase();promotion=["q","r","b","n"].includes(choice)?choice:"q"}
+  if(moves.some(m=>m.promotion)){promotion=await choosePromotion();if(!promotion)return}
   syncClock();if(gameOverByClock)return;
   try{lastMove=game.move({from,to:sq,...(promotion?{promotion}:{})});remaining.w+=increment*1000;redoStack=[];selected=null;targets=[];animateMove={from,to:sq};clockStamp=Date.now();render();scheduleBot()}catch(e){selected=null;targets=[];render()}return;
  }
