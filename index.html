@@ -45,6 +45,19 @@
 <section class="card"><h2>Luật chơi</h2><p class="note">Bạn cầm quân Trắng và đấu với bot ChessZuR bằng quân Đen. Chạm quân rồi chọn ô đích. Bot tự đi sau lượt của bạn. Hỗ trợ nhập thành, bắt tốt qua đường và phong cấp.</p></section>
 </aside>
 </main>
+<div class="promotion-overlay" id="promotionDialog" hidden>
+ <section class="promotion-card" role="dialog" aria-modal="true" aria-labelledby="promotionTitle">
+  <p class="eyebrow">CHESSZUR · PROMOTION</p>
+  <h2 id="promotionTitle">Phong cấp tốt</h2>
+  <p class="promotion-desc">Chọn quân cờ bạn muốn nâng cấp thành.</p>
+  <div class="promotion-options">
+   <button class="promotion-option" data-promotion="q"><img src="assets/pieces/white-queen.svg" alt=""><strong>Hậu</strong><small>Queen</small></button>
+   <button class="promotion-option" data-promotion="r"><img src="assets/pieces/white-rook.svg" alt=""><strong>Xe</strong><small>Rook</small></button>
+   <button class="promotion-option" data-promotion="b"><img src="assets/pieces/white-bishop.svg" alt=""><strong>Tượng</strong><small>Bishop</small></button>
+   <button class="promotion-option" data-promotion="n"><img src="assets/pieces/white-knight.svg" alt=""><strong>Mã</strong><small>Knight</small></button>
+  </div>
+ </section>
+</div>
 <div class="footer">ChessZuR · Bạn đấu với bot · Không cần tài khoản</div>
 <script type="module" src="script.js"></script>
 </body>
