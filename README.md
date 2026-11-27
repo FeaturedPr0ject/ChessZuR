@@ -1,8 +1,11 @@
 # ChessZuR ♟️
 
-A lightweight Vietnamese chess website for two players on one device.
+A lightweight Vietnamese chess website where you play against the ChessZuR bot.
 
 ## Features
+- Play against the AI bot: you play White, bot plays Black
+- Three bot difficulty levels: Easy, Medium and Hard
+- Bot uses minimax search with alpha-beta pruning for Medium and Hard
 - Interactive chessboard with legal move validation
 - Check, checkmate, draw and stalemate detection
 - Castling, en passant and pawn promotion
@@ -19,4 +22,4 @@ Open `index.html` in a modern browser with internet access (the chess rules libr
 3. Select branch `main` and folder `/ (root)`, then save.
 4. After deployment, your site will be available at the GitHub Pages URL shown there.
 
-ChessZuR is a static website; no backend or account is required to play locally.
+ChessZuR is a static website; no backend or account is required to play.
