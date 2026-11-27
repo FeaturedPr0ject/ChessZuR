@@ -1,0 +1,4 @@
+project_id = "chesszur"
+
+[functions.chess-ai]
+verify_jwt = false
