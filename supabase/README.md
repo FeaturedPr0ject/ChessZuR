@@ -1,56 +1,16 @@
-# ChessZuR — Supabase + Gemini
+# ChessZuR — Supabase cloud history
 
-This folder contains the Supabase Edge Function used by the GitHub Pages frontend to request a chess move from Gemini. The Gemini API key stays on the server in Supabase Secrets.
+ChessZuR uses Supabase Auth anonymous sessions and a private per-user game-history table. The browser uses only the project's publishable key; never put a secret or service_role key in GitHub Pages.
 
-## Supabase project
+## One-time setup
 
-- Project ref: `rbdlfzoqwuchkjbgzmjb`
-- Project URL: `https://rbdlfzoqwuchkjbgzmjb.supabase.co`
-- Region: Singapore
+1. In Supabase Dashboard, open Authentication settings and enable **Allow anonymous sign-ins**.
+2. Open SQL Editor and run the complete SQL in [schema.sql](schema.sql).
+3. Confirm the Data API exposes `public.chess_games` if the project uses restricted Data API exposure.
+4. Reload the GitHub Pages site. The browser will create an anonymous account and sync completed games.
 
-## Gemini API key
+Anonymous sessions are tied to the current browser storage. Clearing site data or switching devices creates a different anonymous user; link a permanent sign-in provider later if cross-device identity is required.
 
-1. Open [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Create a Gemini API key.
-3. In Supabase Dashboard, open **Edge Functions → Secrets**.
-4. Add:
-   - `GEMINI_API_KEY` = your private Gemini API key
-   - `GEMINI_MODEL` = `gemini-3.8-flash` (optional; can be changed to a model enabled for your API key)
+## Local fallback
 
-Never commit the Gemini key to GitHub or put it in `index.html` / `script.js`.
-
-## Deploy
-
-From the repository root, install and authenticate the Supabase CLI, then run:
-
-```bash
-supabase login
-supabase link --project-ref rbdlfzoqwuchkjbgzmjb
-supabase functions deploy chess-ai
-```
-
-The function is configured with `verify_jwt = false` because the static GitHub Pages app uses a publishable key rather than a user JWT. The function checks the supplied `apikey` against the project's configured publishable key and restricts browser origins to the ChessZuR GitHub Pages site. A publishable key is public by design; this is not a substitute for rate limiting or abuse controls.
-
-Function URL:
-
-```
-https://rbdlfzoqwuchkjbgzmjb.supabase.co/functions/v1/chess-ai
-```
-
-## Request
-
-```json
-{
-  "fen": "current FEN",
-  "history": ["e4", "e5"],
-  "legalMoves": ["Nf3", "Bc4", "Qh5"]
-}
-```
-
-Response:
-
-```json
-{ "move": "Nf3", "model": "gemini-3.8-flash" }
-```
-
-The frontend must validate the returned SAN move with chess.js before applying it. Gemini is a language model, not a dedicated chess engine, so invalid responses should fall back to the local bot.
+Theme, piece style, sound, vibration, and up to 50 completed games are also saved in browser local storage. The app continues to work locally if Supabase is unavailable.
