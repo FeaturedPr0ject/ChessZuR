@@ -1,4 +1,4 @@
-project_id = "chesszur"
+project_id = "rbdlfzoqwuchkjbgzmjb"
 
 [functions.chess-ai]
 verify_jwt = false
