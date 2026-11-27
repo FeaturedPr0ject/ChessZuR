@@ -1,0 +1,128 @@
+:root{--mobile-gutter:12px}
+*{-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:12px}
+body{min-height:100svh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom)}
+header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px;gap:8px}
+.logo,.logo img{width:38px;height:38px}
+.logo{flex-basis:38px}
+.brand{gap:9px}
+.brand h1{font-size:21px;letter-spacing:-.5px}
+.brand p{font-size:9px;letter-spacing:1.3px}
+.pill{font-size:10px;padding:5px 8px}
+.start-screen{min-height:calc(100svh - 60px);padding:12px var(--mobile-gutter) calc(20px + env(safe-area-inset-bottom));place-items:center}
+.start-card{width:100%;max-width:470px;padding:22px 16px;border-radius:19px}
+.start-mark{width:48px;height:48px;border-radius:15px;font-size:31px;margin-bottom:14px}
+.start-card h2{font-size:clamp(24px,7vw,30px)}
+.start-desc{font-size:12px;line-height:1.5;margin:7px 0 18px}
+.setup-section{margin-top:17px}
+.setup-heading{align-items:flex-start;font-size:12px;gap:6px}
+.setup-heading output{font-size:11px;max-width:65%;line-height:1.35}
+.strength-slider{height:10px;margin:17px 0 12px}
+.strength-slider::-webkit-slider-thumb{width:24px;height:24px}
+.strength-scale{gap:4px;font-size:8px}
+.strength-scale span{min-width:0;min-height:42px;display:grid;align-content:center;padding:5px 1px;border-radius:7px;overflow-wrap:anywhere}
+.time-options{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:10px}
+.time-option{min-width:0;min-height:66px;padding:8px 1px;border-radius:9px;gap:2px}
+.time-option strong{font-size:clamp(11px,3.6vw,15px);white-space:nowrap;letter-spacing:-.3px}
+.time-option span,.time-option small{font-size:8px}
+.start-button{min-height:50px;margin-top:21px;padding:13px 12px;border-radius:11px;font-size:15px}
+.start-footnote{font-size:10px;margin-top:9px}
+main{width:100%;max-width:580px;margin:0 auto;padding:4px 10px calc(20px + env(safe-area-inset-bottom));grid-template-columns:minmax(0,1fr);gap:10px}
+.board-wrap{width:100%;padding:8px;border-radius:15px;box-shadow:0 10px 32px #0003}
+.clock-row{gap:7px;margin-bottom:8px}
+.clock{min-width:0;gap:7px;padding:7px 9px;border-radius:9px}
+.clock strong{font-size:clamp(16px,5vw,19px);letter-spacing:0}
+.clock-label{font-size:8px;letter-spacing:.35px}
+.clock-mode,.clock-increment{font-size:10px;white-space:nowrap}
+.player{gap:8px;padding:3px 2px 8px}
+.avatar{width:30px;height:30px;flex:0 0 30px;border-radius:8px}
+.avatar img{width:27px;height:27px}
+.player-name{font-size:13px;line-height:1.25}
+.player-sub{font-size:10px;line-height:1.3}
+.turn{font-size:9px;padding:4px 7px;white-space:nowrap}
+.board{width:100%;border-radius:5px}
+.square{font-size:clamp(27px,9vw,52px)}
+.square .piece{width:87%;height:87%}
+.square.selected{box-shadow:inset 0 0 0 3px var(--gold)}
+.square.capture:after{border-width:2px}
+.coord{font-size:8px;left:3px;top:2px}
+.coord.file{right:3px;bottom:2px}
+.board-footer{padding:7px 2px 0;font-size:10px}
+.board-footer span:last-child{opacity:.7}
+.player:has(+.bottom-clock){padding:9px 2px 2px!important}
+.bottom-clock{margin:7px 0 0}
+.side{display:flex;flex-direction:column;gap:10px}
+.card{padding:14px;border-radius:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.status{padding:11px;border-radius:10px;gap:9px}
+.status-icon{font-size:20px}
+.status strong{font-size:13px}
+.status small{font-size:11px;line-height:1.35}
+.actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
+.btn{min-height:44px;padding:10px 8px;border-radius:9px;font-size:12px}
+.game-settings{margin-top:10px;line-height:1.4}
+.moves{max-height:180px;overscroll-behavior:contain}
+.moves table{font-size:12px}
+.moves td{padding:7px 6px}
+.note{font-size:11px;line-height:1.5}
+.footer{padding:0 12px calc(16px + env(safe-area-inset-bottom));font-size:10px;text-align:center}
+.promotion-overlay{padding:12px calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
+.promotion-card{width:100%;max-width:390px;padding:21px 15px;border-radius:19px}
+.promotion-card h2{font-size:22px}
+.promotion-desc{font-size:12px;margin:6px 0 16px}
+.promotion-options{gap:7px}
+.promotion-option{min-height:106px;padding:9px 3px;border-radius:11px}
+.promotion-option img{width:clamp(42px,13vw,58px);height:clamp(42px,13vw,58px)}
+.promotion-option strong{font-size:13px}
+.promotion-option small{font-size:9px}
+}
+@media(max-width:380px){
+header{padding-left:11px;padding-right:11px}
+main{padding-left:7px;padding-right:7px}
+.start-card{padding:19px 12px}
+.strength-scale{gap:3px;font-size:7px}
+.strength-scale span{min-height:39px}
+.time-options{gap:4px}
+.time-option{min-height:62px}
+.time-option strong{font-size:11px}
+.clock{padding:6px 7px;gap:5px}
+.clock strong{font-size:16px}
+.clock-label{font-size:7px}
+.clock-mode,.clock-increment{font-size:9px}
+.board-wrap{padding:6px}
+.player-name{font-size:12px}
+.player-sub{font-size:9px}
+.turn{font-size:8px;padding:3px 6px}
+}
+@media(max-width:600px) and (max-height:620px){
+.start-screen{place-items:start center}
+.start-card{padding-top:17px;padding-bottom:16px}
+.start-mark{width:40px;height:40px;font-size:26px;margin-bottom:10px}
+.start-desc{margin-bottom:12px}
+.setup-section{margin-top:13px}
+.strength-slider{margin:12px 0 9px}
+.start-button{margin-top:15px}
+}
+@media(max-width:900px) and (max-height:500px) and (orientation:landscape){
+header{padding:6px 12px}
+.logo,.logo img{width:30px;height:30px}
+.logo{flex-basis:30px}
+.brand h1{font-size:18px}
+.brand p,.pill{display:none}
+main{max-width:900px;width:100%;padding:3px 10px 14px;grid-template-columns:minmax(0,1.08fr) minmax(220px,.92fr);gap:10px}
+.board-wrap{padding:6px}
+.board{width:min(100%,calc(100svh - 105px));margin:0 auto}
+.player{padding-top:2px;padding-bottom:5px}
+.player:has(+.bottom-clock){padding-top:5px!important}
+.side{display:flex;gap:8px;min-width:0}
+.side .card{padding:10px}
+.side .card:first-child{grid-column:auto}
+.side .card:last-child{display:none}
+.moves{max-height:105px}
+.actions{gap:5px}
+.btn{min-height:38px;padding:6px;font-size:11px}
+.clock{padding:5px 7px}
+.clock strong{font-size:15px}
+.clock-label{font-size:7px}
+.footer{display:none}
+}
