@@ -93,7 +93,7 @@ function updateMoves(){
  html+='</tbody></table>';movesEl.innerHTML=html;movesEl.scrollTop=movesEl.scrollHeight;
 }
 document.getElementById("newGame").addEventListener("click",()=>{if(game.history().length&&!confirm("Bắt đầu ván mới?"))return;game.reset();selected=null;targets=[];lastMove=null;botThinking=false;render()});
-document.getElementById("undo").addEventListener("click",()=>{if(botThinking)return;let m=game.undo();if(m&&game.turn()==="w"&&game.history().length)m=game.undo()||m;if(m){lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render()}});
+document.getElementById("undo").addEventListener("click",()=>{if(botThinking)return;let m=game.undo();if(m&&game.history().length)m=game.undo()||m;if(m){lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render()}});
 document.getElementById("flip").addEventListener("click",()=>{flipped=!flipped;render()});
 document.getElementById("copyFen").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(game.fen());const b=document.getElementById("copyFen");b.textContent="Đã sao chép!";setTimeout(()=>b.textContent="▣ Sao chép FEN",1300)}catch(e){prompt("Sao chép FEN:",game.fen())}});
 render();
