@@ -55,10 +55,14 @@ Deno.serve(async (req: Request) => {
   const prompt = [
     "Bạn là huấn luyện viên cờ vua. Người dùng đang chơi quân Trắng và đã thua ván này.",
     "Phân tích toàn bộ ván cờ, chỉ chấm các nước đi của Trắng. Xác định các sai lầm chiến thuật, quân bị bỏ, chiếu hết bị bỏ lỡ và cơ hội phòng thủ.",
-    "Dùng ký hiệu cờ vua: !! xuất sắc, ! tốt, !? thú vị/rủi ro, ? sai, ?? sai lầm nghiêm trọng, ?! đáng nghi.",
+    "Đánh giá khách quan từng nước của Trắng dựa trên toàn bộ thế cờ, không chỉ dựa vào việc ván cuối cùng bị thua. Không gán nhãn chỉ để đủ số lượng.",
+    "Ý nghĩa ký hiệu: !! nước xuất sắc hiếm gặp; ! nước tốt rõ ràng; !? nước thú vị/có ý tưởng nhưng rủi ro hoặc chưa chắc tốt; ?! nước đáng nghi, có nhược điểm; ? sai lầm rõ rệt; ?? sai lầm nghiêm trọng làm mất lợi thế hoặc dẫn tới thua đáng kể.",
+    "Với mỗi nhận xét, tự kiểm tra xem ký hiệu bạn chọn có thật sự phù hợp với nước đi và thế cờ không. mark_verdict phải là Phù hợp nếu ký hiệu đúng mức, hoặc Chưa phù hợp nếu ký hiệu đó bị quá nặng/quá nhẹ so với chất lượng nước đi.",
+    "emotion là sắc thái phản ứng của một huấn luyện viên AI, không phải cảm xúc thật: !! = Thán phục; ! = Hài lòng; !? = Tò mò; ?! = Lo ngại; ? = Tiếc nuối; ?? = Báo động. Có thể chọn từ gần nghĩa nếu hợp ngữ cảnh.",
+    "emotion_reason giải thích ngắn vì sao huấn luyện viên có sắc thái đó. reason phải phân tích ý tưởng, lỗi chiến thuật/chiến lược và hậu quả cụ thể; không chỉ lặp lại tên ký hiệu.",
     "Chỉ trả về những nước thật sự đáng chú ý; không cần gắn nhãn mọi nước. Không bịa nước thay thế hoặc biến thể. Nếu không chắc best_alternative thì để chuỗi rỗng.",
     "ply là số thứ tự nửa nước bắt đầu từ 1 (nước Trắng đầu tiên là 1, Đen đầu tiên là 2).",
-    "Giải thích tiếng Việt ngắn gọn, nói rõ vì sao nước đó sai và hậu quả. Tối đa 12 nhận xét.",
+    "Viết tiếng Việt ngắn gọn, tối đa 12 nhận xét. Nếu nước đi bình thường thì bỏ qua, không cố gán cảm xúc.",
     "Trả về đúng JSON theo schema. Dữ liệu ván cờ:",
     gameText
   ].join("\n\n");
@@ -84,16 +88,19 @@ Deno.serve(async (req: Request) => {
                   properties: {
                     ply: { type: "INTEGER" },
                     mark: { type: "STRING", enum: ["!!", "!", "!?", "?", "??", "?!"] },
+                    mark_verdict: { type: "STRING", enum: ["Phù hợp", "Chưa phù hợp"] },
+                    emotion: { type: "STRING" },
+                    emotion_reason: { type: "STRING" },
                     reason: { type: "STRING" },
                     best_alternative: { type: "STRING" }
                   },
-                  required: ["ply", "mark", "reason", "best_alternative"]
+                  required: ["ply", "mark", "mark_verdict", "emotion", "emotion_reason", "reason", "best_alternative"]
                 }
               }
             },
             required: ["reviews"]
           },
-          maxOutputTokens: 2400
+          maxOutputTokens: 3200
         }
       })
     });
@@ -110,9 +117,12 @@ Deno.serve(async (req: Request) => {
       .filter((item: { ply?: number; mark?: string; reason?: string }) =>
         Number.isInteger(item.ply) && item.ply > 0 && marks.has(item.mark) && typeof item.reason === "string")
       .slice(0, 12)
-      .map((item: { ply: number; mark: string; reason: string; best_alternative?: string }) => ({
+      .map((item: { ply: number; mark: string; mark_verdict?: string; emotion?: string; emotion_reason?: string; reason: string; best_alternative?: string }) => ({
         ply: item.ply,
         mark: item.mark,
+        mark_verdict: item.mark_verdict === "Phù hợp" ? "Phù hợp" : "Chưa phù hợp",
+        emotion: typeof item.emotion === "string" ? item.emotion.slice(0, 40) : "Bình tĩnh",
+        emotion_reason: typeof item.emotion_reason === "string" ? item.emotion_reason.slice(0, 180) : "",
         reason: item.reason.slice(0, 500),
         best_alternative: typeof item.best_alternative === "string" ? item.best_alternative.slice(0, 80) : ""
       })) : [];
