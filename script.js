@@ -4,6 +4,9 @@ const game=new Chess();
 const $=id=>document.getElementById(id);
 const boardEl=$("board"),movesEl=$("moves"),boardHome=boardEl.parentElement,boardHomeNext=boardEl.nextSibling;
 const pieceNames={k:"king",q:"queen",r:"rook",b:"bishop",n:"knight",p:"pawn"};
+const pieceGlyphs={w:{k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"},b:{k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"}};
+function pieceIconHTML(color,type,className="ui-piece-icon"){if(featureSettings.pieceStyle==="unicode")return `<span class="${className} unicode-piece">${pieceGlyphs[color][type]}</span>`;return `<img class="${className} svg-piece-icon" src="assets/pieces/${color==="w"?"white":"black"}-${pieceNames[type]}.svg" alt="">`}
+function syncPieceDecorations(){const pill=$("pieceBadgeIcon"),mark=$("startMarkIcon");if(pill)pill.innerHTML=pieceIconHTML("b","p");if(mark)mark.innerHTML=pieceIconHTML("b","n");updateStatus()}
 let selected=null,targets=[],flipped=false,lastMove=null,botThinking=false,animateMove=null;
 let gameStarted=false,gameOverByClock=false,allowUnload=false,clockBase=300,increment=0,remaining={w:300000,b:300000},clockStamp=0,clockTimer=null,redoStack=[];
 let savedGameId=null,cloudUser=null,audioContext=null;
@@ -29,7 +32,7 @@ function render(){
   btn.className="square "+((rr+cc)%2===0?"light":"dark");btn.dataset.square=sq;
   if(sq===selected)btn.classList.add("selected");if(lastMove&&(sq===lastMove.from||sq===lastMove.to))btn.classList.add("last");if(sq===checkSq)btn.classList.add("check");
   const target=targets.find(m=>m.to===sq);if(target)btn.classList.add(piece?"capture":"legal");
-  if(piece){if(featureSettings.pieceStyle==="unicode"){const glyph=document.createElement("span");glyph.className="piece-glyph "+(piece.color==="w"?"white":"black");glyph.textContent=({w:{k:"♔",q:"♕",r:"♖",b:"♗",n:"♘",p:"♙"},b:{k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"}})[piece.color][piece.type];btn.append(glyph);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from)){glyph.style.visibility="hidden";pendingAnimations.push({img:glyph,from:oldSquares.get(moveAnimation.from)})}}else{const img=document.createElement("img");img.className="piece "+(piece.color==="w"?"white":"black");img.src=`assets/pieces/${piece.color==="w"?"white":"black"}-${pieceNames[piece.type]}.svg`;img.alt=piece.type;img.draggable=false;btn.append(img);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from)){img.style.visibility="hidden";pendingAnimations.push({img,from:oldSquares.get(moveAnimation.from)})}}}
+  if(piece){if(featureSettings.pieceStyle==="unicode"){const glyph=document.createElement("span");glyph.className="piece-glyph "+(piece.color==="w"?"white":"black");glyph.textContent=pieceGlyphs[piece.color][piece.type];btn.append(glyph);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from)){glyph.style.visibility="hidden";pendingAnimations.push({img:glyph,from:oldSquares.get(moveAnimation.from)})}}else{const img=document.createElement("img");img.className="piece "+(piece.color==="w"?"white":"black");img.src=`assets/pieces/${piece.color==="w"?"white":"black"}-${pieceNames[piece.type]}.svg`;img.alt=piece.type;img.draggable=false;btn.append(img);if(moveAnimation&&sq===moveAnimation.to&&oldSquares.has(moveAnimation.from)){img.style.visibility="hidden";pendingAnimations.push({img,from:oldSquares.get(moveAnimation.from)})}}}
   if(c===0){const coord=document.createElement("span");coord.className="coord";coord.textContent=String(8-rr);btn.append(coord)}if(rr===7){const coord=document.createElement("span");coord.className="coord file";coord.textContent=files[cc];btn.append(coord)}
   btn.setAttribute("aria-label",sq+(piece?" "+piece.type:""));btn.addEventListener("click",()=>tap(sq));boardEl.append(btn);
  }
@@ -55,7 +58,7 @@ function updateStatus(){
  else if(game.isCheckmate()){title="Chiếu hết!";desc=(game.turn()==="w"?"Bot":"Bạn")+" chiến thắng";$("statusIcon").textContent="🏆"}
  else if(game.isDraw()){title="Ván cờ hòa";desc=game.isStalemate()?"Hết nước đi hợp lệ":"Điều kiện hòa đã được đáp ứng";$("statusIcon").textContent="🤝"}
  else if(game.isCheck()){$("statusIcon").textContent="⚠️";title=side+" đang bị chiếu!";desc="Hãy bảo vệ vua"}else $("statusIcon").textContent=game.turn()==="w"?"♙":"♟";
- $("statusTitle").textContent=title;$("statusDesc").textContent=desc;$("whiteTurn").style.opacity=game.turn()==="w"?"1":".45";$("blackTurn").style.opacity=game.turn()==="b"?"1":".45";$("orientation").textContent=flipped?"♟ Bot ở phía dưới":"♙ Bạn đi trước";
+ $("statusTitle").textContent=title;$("statusDesc").textContent=desc;$("whiteTurn").style.opacity=game.turn()==="w"?"1":".45";$("blackTurn").style.opacity=game.turn()==="b"?"1":".45";$("orientation").innerHTML=flipped?pieceIconHTML("b","p","orientation-piece")+" Bot ở phía dưới":pieceIconHTML("w","p","orientation-piece")+" Bạn đi trước";
 }
 const values={p:100,n:320,b:330,r:500,q:900,k:20000};
 function evaluate(){if(game.isCheckmate())return game.turn()==="b"?-99999:99999;if(game.isDraw())return 0;let score=0;for(const row of game.board())for(const p of row)if(p)score+=(p.color==="b"?1:-1)*values[p.type];return score}
@@ -83,7 +86,7 @@ window.addEventListener("keydown",e=>{if(gameStarted&&(e.key==="F5"||e.key==="r"
 render();
 
 
-function applyFeatureSettings(){document.body.dataset.boardTheme=featureSettings.boardTheme;document.body.dataset.pieceStyle=featureSettings.pieceStyle;for(const key of ["boardTheme","pieceStyle","soundEnabled","vibrationEnabled"]){const el=$(key);if(el)el.type==="checkbox"?el.checked=Boolean(featureSettings[key]):el.value=featureSettings[key]}render()}
+function applyFeatureSettings(){document.body.dataset.boardTheme=featureSettings.boardTheme;document.body.dataset.pieceStyle=featureSettings.pieceStyle;for(const key of ["boardTheme","pieceStyle","soundEnabled","vibrationEnabled"]){const el=$(key);if(el)el.type==="checkbox"?el.checked=Boolean(featureSettings[key]):el.value=featureSettings[key]}syncPieceDecorations();render()}
 function saveFeatureSettings(){localStorage.setItem("chesszur-settings",JSON.stringify(featureSettings));applyFeatureSettings()}
 function playMoveFeedback(captured,check){if(featureSettings.soundEnabled){try{const C=window.AudioContext||window.webkitAudioContext;if(C){audioContext=audioContext||new C();if(audioContext.state==="suspended")audioContext.resume();const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.type="sine";osc.frequency.value=check?740:captured?520:360;gain.gain.setValueAtTime(.0001,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(.075,audioContext.currentTime+.012);gain.gain.exponentialRampToValueAtTime(.0001,audioContext.currentTime+.11);osc.connect(gain);gain.connect(audioContext.destination);osc.start();osc.stop(audioContext.currentTime+.12)}}catch(e){}}if(featureSettings.vibrationEnabled&&navigator.vibrate)navigator.vibrate(check?[25,35,25]:captured?24:12)}
 function openFeatureDialog(id){$(id).hidden=false}
