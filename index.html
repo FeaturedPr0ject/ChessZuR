@@ -68,14 +68,17 @@
   <label class="feature-field">Kiểu quân cờ<select id="pieceStyle"><option value="svg">SVG cổ điển</option><option value="unicode">Unicode tối giản</option></select></label>
   <label class="feature-toggle"><span><strong>Âm thanh</strong><small>Tiếng đi quân, ăn quân và chiếu vua</small></span><input id="soundEnabled" type="checkbox" checked></label>
   <label class="feature-toggle"><span><strong>Rung điện thoại</strong><small>Phản hồi nhẹ khi thao tác trên thiết bị hỗ trợ</small></span><input id="vibrationEnabled" type="checkbox" checked></label>
-  <p class="feature-hint">Tùy chọn được lưu trên thiết bị này.</p>
+  <div class="gemini-settings"><h3>Gemini API · Phân tích ván thua</h3><label class="feature-field">API key<input id="geminiApiKey" type="password" autocomplete="off" placeholder="Dán Gemini API key"></label><button class="btn primary" id="saveGeminiKey" type="button">Lưu API key</button><small id="geminiKeyStatus" class="feature-hint">Key chỉ lưu trong trình duyệt trên thiết bị này.</small></div><p class="feature-hint">Tùy chọn được lưu trên thiết bị này.</p>
  </section>
 </div>
 <div class="feature-overlay replay-overlay" id="replayDialog" hidden>
  <section class="feature-dialog replay-dialog" role="dialog" aria-modal="true" aria-labelledby="replayTitle">
   <div class="feature-dialog-head"><div><p class="eyebrow">CHESSZUR · REPLAY</p><h2 id="replayTitle">Xem lại ván đấu</h2></div><button class="feature-close" id="replayClose" aria-label="Đóng">×</button></div>
   <div class="replay-status" id="replayStatus">Vị trí bắt đầu</div>
-  <div id="replayBoardSlot"></div>
+  <div class="replay-workspace">
+   <div id="replayBoardSlot"></div>
+   <aside class="replay-coach"><div class="replay-coach-head"><div class="replay-king" id="replayCoachKing"></div><div><strong>ChessZuR Coach</strong><small id="replayCoachTitle">Đang chuẩn bị</small></div></div><div class="replay-chat-row"><span class="replay-move-mark" id="replayMoveMark" hidden>?</span><div class="replay-chat-bubble" id="replayCoachBubble">Chờ phân tích…</div></div><small class="replay-coach-foot">Nhận xét do Gemini tạo · có thể cần kiểm chứng</small></aside>
+  </div>
   <div class="replay-controls"><button class="btn" id="replayPrev" disabled>← Trước</button><strong id="replayCounter">0 / 0</strong><button class="btn primary" id="replayNext">Tiếp →</button></div>
  </section>
 </div>
