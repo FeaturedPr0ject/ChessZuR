@@ -10,7 +10,7 @@ function syncPieceDecorations(){const pill=$("pieceBadgeIcon"),mark=$("startMark
 let selected=null,targets=[],flipped=false,lastMove=null,botThinking=false,animateMove=null;
 let gameStarted=false,gameOverByClock=false,allowUnload=false,clockBase=300,increment=0,remaining={w:300000,b:300000},clockStamp=0,clockTimer=null,redoStack=[];
 let savedGameId=null,cloudUser=null,audioContext=null;
-let replayMode=false,replayMoves=[],replayIndex=0,replayReturnPgn="",replayReturnFen="";
+let replayMode=false,replayMoves=[],replayIndex=0,replayReturnPgn="",replayReturnFen="",replayTimer=null,replayAnalysis=[],replayItem=null,replayAnalysisReady=false;
 const featureDefaults={boardTheme:"forest",pieceStyle:"svg",soundEnabled:true,vibrationEnabled:true};
 let featureSettings={...featureDefaults,...JSON.parse(localStorage.getItem("chesszur-settings")||"{}")};
 let savedGames=JSON.parse(localStorage.getItem("chesszur-history")||"[]");
@@ -102,9 +102,44 @@ $("settingsButton").addEventListener("click",()=>openFeatureDialog("settingsDial
 document.querySelectorAll("[data-close]").forEach(btn=>btn.addEventListener("click",()=>closeFeatureDialog(btn.dataset.close)));
 document.querySelectorAll(".feature-overlay").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)closeFeatureDialog(el.id)}));
 for(const key of ["boardTheme","pieceStyle"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.value;saveFeatureSettings()})}
-for(const key of ["soundEnabled","vibrationEnabled"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.checked;saveFeatureSettings()})}
+for(const key of ["soundEnabled","vibrationEnabled"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.checked;saveFeatureSettings()})}\nconst geminiKeyInput=$("geminiApiKey");if(geminiKeyInput)geminiKeyInput.value=localStorage.getItem("chesszur-gemini-key")||"";$("saveGeminiKey").addEventListener("click",()=>{const value=geminiKeyInput.value.trim();if(value)localStorage.setItem("chesszur-gemini-key",value);else localStorage.removeItem("chesszur-gemini-key");$("geminiKeyStatus").textContent=value?"Đã lưu API key trên thiết bị này.":"Đã xóa API key."});
 
-function showReplayPosition(){game.reset();for(const move of replayMoves.slice(0,replayIndex))game.move(move);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();$("replayCounter").textContent=replayIndex+" / "+replayMoves.length;$("replayPrev").disabled=replayIndex===0;$("replayNext").disabled=replayIndex===replayMoves.length;$("replayStatus").textContent=replayIndex===0?"Vị trí bắt đầu":replayIndex===replayMoves.length?"Đã đến nước cuối":"Đang xem lại ván đấu"}
+function replayMoveAt(index){return replayMoves[index-1]||null}
+function currentReplayAnnotation(){return replayAnalysis.find(item=>Number(item.ply)===replayIndex)||null}
+function renderReplayCoach(){
+ const bubble=$("replayCoachBubble"),mark=$("replayMoveMark"),title=$("replayCoachTitle"),king=$("replayCoachKing");
+ if(king)king.innerHTML=pieceIconHTML("w","k","review-king-icon");
+ const move=replayMoveAt(replayIndex),note=currentReplayAnnotation();
+ if(!replayItem||!isLostGame(replayItem)){title.textContent="Trợ lý ChessZuR";bubble.textContent="Phân tích Gemini tự động chỉ dành cho ván bạn bị thua.";mark.textContent="";mark.hidden=true;return}
+ if(!replayAnalysisReady){title.textContent="Gemini đang phân tích…";bubble.textContent="Mình đang xem từng nước đi để tìm thời điểm bạn bỏ lỡ cơ hội hoặc mắc sai lầm.";mark.hidden=true;return}
+ if(!move){title.textContent="Bắt đầu ván đấu";bubble.textContent="Theo dõi các nước đi. Mình sẽ giải thích ngay khi đến nước có vấn đề.";mark.hidden=true;return}
+ const san=game.history().at(-1)||"Nước đi";
+ if(note){title.textContent="Nước "+Math.ceil(replayIndex/2)+" · "+san;mark.hidden=false;mark.textContent=note.mark||"?";mark.className="replay-move-mark mark-"+String(note.mark||"?").replace(/[^!?]/g,"").toLowerCase();bubble.textContent=note.reason||"Nước đi này cần được xem xét.";if(note.best_alternative)bubble.textContent+=" Nên cân nhắc: "+note.best_alternative+"."}
+ else{title.textContent="Nước "+Math.ceil(replayIndex/2)+" · "+san;mark.hidden=true;bubble.textContent="Nước đi này chưa có nhận xét riêng. Hãy chú ý các quân đang bị tấn công và độ an toàn của vua."}
+}
+function showReplayPosition(){game.reset();for(const move of replayMoves.slice(0,replayIndex))game.move(move);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();$("replayCounter").textContent=replayIndex+" / "+replayMoves.length;$("replayPrev").disabled=replayIndex===0;$("replayNext").disabled=replayIndex===replayMoves.length;const move=game.history().at(-1);$("replayStatus").textContent=replayIndex===0?"Vị trí bắt đầu":replayIndex===replayMoves.length?"Đã đến nước cuối":"Nước "+Math.ceil(replayIndex/2)+": "+move;renderReplayCoach()}
+function isLostGame(item){return /thua|hết giờ.*thua/i.test(String(item?.result||""))}
+function stopReplayAutoplay(){if(replayTimer){clearInterval(replayTimer);replayTimer=null}}
+function startReplayAutoplay(){stopReplayAutoplay();replayTimer=setInterval(()=>{if(!replayMode||replayIndex>=replayMoves.length){stopReplayAutoplay();return}replayIndex++;showReplayPosition();if(replayIndex>=replayMoves.length)stopReplayAutoplay()},2000)}
+async function analyzeLostGame(item){
+ replayAnalysis=[];replayAnalysisReady=false;renderReplayCoach();
+ const key=localStorage.getItem("chesszur-gemini-key")||"";
+ if(!key){$("replayCoachTitle").textContent="Chưa kết nối Gemini";$("replayCoachBubble").textContent="Mở Cá nhân hóa → Gemini API, dán API key rồi lưu. Sau đó mở lại ván thua để phân tích.";return}
+ try{
+  const chess=new Chess();if(item.pgn)chess.loadPgn(item.pgn);else for(const move of item.moves||[])chess.move(move);
+  const verbose=chess.history({verbose:true});
+  const moves=verbose.map((m,i)=>({ply:i+1,move_number:Math.ceil((i+1)/2),side:m.color==="w"?"white":"black",san:m.san,from:m.from,to:m.to}));
+  const prompt="Bạn là huấn luyện viên cờ vua. Phân tích ván cờ PGN dưới đây, người chơi là Trắng và đã thua. Chỉ đánh giá các nước của Trắng (side white). Tìm các nước sai hoặc cơ hội bị bỏ lỡ. Dùng ký hiệu chuẩn: !! nước xuất sắc, ! nước tốt, !? thú vị/rủi ro, ? sai, ?? sai lầm nghiêm trọng, ?! đáng nghi. Chỉ gán ký hiệu khi có lý do rõ; nước bình thường không cần trả về. Không bịa biến thể. Trả về JSON object đúng dạng {\"reviews\":[{\"ply\":1,\"mark\":\"?\",\"reason\":\"Giải thích ngắn bằng tiếng Việt, nói rõ vấn đề chiến thuật\",\"best_alternative\":\"Nước thay thế dạng SAN nếu chắc chắn, nếu không để trống\"}]}. ply là số thứ tự nửa nước bắt đầu từ 1. Tối đa 12 nhận xét. Danh sách nước đi: "+JSON.stringify(moves);
+  const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2,maxOutputTokens:2200}})});
+  const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Gemini API trả về lỗi "+response.status);
+  const raw=data.candidates?.[0]?.content?.parts?.map(part=>part.text||"").join("")||"{}";
+  const parsed=JSON.parse(raw.replace(/^\s*```(?:json)?|\`\`\`\s*$/g,""));
+  replayAnalysis=Array.isArray(parsed.reviews)?parsed.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length):[];
+  replayAnalysisReady=true;renderReplayCoach();
+ }catch(error){replayAnalysisReady=false;$("replayCoachTitle").textContent="Gemini chưa phân tích được";$("replayCoachBubble").textContent=error.message+" · Kiểm tra API key/quota trong Google AI Studio.";console.warn("Gemini review:",error)}
+}
+function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();replayItem=item;replayAnalysis=[];replayAnalysisReady=false;stopClock();stopReplayAutoplay();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition();if(isLostGame(item))analyzeLostGame(item);else renderReplayCoach();startReplayAutoplay()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
+function closeReplay(){stopReplayAutoplay();replayMode=false;replayItem=null;$("replayDialog").hidden=true;boardEl.classList.remove("replay-board");boardHome.insertBefore(boardEl,boardHomeNext);if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
 function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();stopClock();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
 function closeReplay(){replayMode=false;$("replayDialog").hidden=true;boardEl.classList.remove("replay-board");boardHome.insertBefore(boardEl,boardHomeNext);if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
 $("historyList").addEventListener("click",e=>{const btn=e.target.closest("[data-history]");if(!btn)return;const item=savedGames[Number(btn.dataset.history)];if(item)startReplay(item)});
