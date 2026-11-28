@@ -68,3 +68,27 @@ body[data-board-theme="purple"] .logo img{filter:hue-rotate(145deg) saturate(.9)
 .orientation-piece{width:1.25em;height:1.25em;object-fit:contain;vertical-align:middle;margin-right:3px}
 body[data-piece-style="unicode"] .unicode-piece{font-family:"Segoe UI Symbol",serif}
 #pieceBadgeIcon .unicode-piece{font-size:1.2em;line-height:1}
+
+
+/* Gemini chess review workspace */
+.gemini-settings{margin-top:18px;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--panel2)}
+.gemini-settings h3{margin:0 0 10px;font-size:13px;color:var(--green)}
+.gemini-settings .feature-field{margin:8px 0}
+.gemini-settings input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font:inherit}
+.gemini-settings .btn{width:100%;margin:4px 0 8px}
+.replay-dialog{width:min(100%,900px)}
+.replay-workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);align-items:start;gap:18px}
+.replay-board{width:100%;max-width:560px}
+.replay-coach{min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:var(--panel2)}
+.replay-coach-head{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.replay-king{width:46px;height:46px;display:grid;place-items:center;flex:none;border-radius:12px;background:var(--ui-glow);border:1px solid var(--line)}
+.review-king-icon{width:36px;height:36px;object-fit:contain}
+.replay-coach-head>div:last-child{display:grid;gap:4px;min-width:0}
+.replay-coach-head strong{font-size:13px}
+.replay-coach-head small{font-size:11px;color:var(--muted);line-height:1.4}
+.replay-chat-row{display:flex;align-items:flex-start;gap:8px}
+.replay-chat-bubble{position:relative;min-width:0;padding:12px 13px;border:1px solid var(--line);border-radius:4px 13px 13px 13px;background:var(--panel);font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.replay-move-mark{display:grid;place-items:center;min-width:30px;height:30px;padding:0 5px;border-radius:8px;background:var(--green);color:var(--bg);font-size:13px;font-weight:900}
+.replay-move-mark[hidden]{display:none}
+.replay-coach-foot{display:block;margin:10px 2px 0;color:var(--muted);font-size:9px;line-height:1.45}
+@media(max-width:700px){.replay-dialog{width:min(100%,560px)}.replay-workspace{grid-template-columns:1fr;gap:12px}.replay-board{max-width:100%}.replay-coach{padding:11px}.replay-coach-head{margin-bottom:9px}.replay-chat-bubble{font-size:11px}.replay-controls{margin-top:12px}}
