@@ -101,3 +101,10 @@ body[data-piece-style="unicode"] .unicode-piece{font-family:"Segoe UI Symbol",se
 .replay-dialog{overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
 .replay-dialog::-webkit-scrollbar{display:none;width:0;height:0}
 .replay-coach[hidden]{display:none!important}
+
+
+/* Keep game setup inside the board column instead of a full-page screen. */
+main:has(>.side[hidden]){grid-template-columns:minmax(0,650px);justify-content:center}
+.board-wrap:has(>#startScreen){min-height:650px;display:grid;align-items:center}
+#startScreen.start-screen{min-height:0;width:100%;padding:0;margin:0;display:grid;place-items:center}
+#startScreen .start-card{width:min(100%,560px)}
