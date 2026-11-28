@@ -127,3 +127,16 @@ main{max-width:900px;width:100%;padding:3px 10px 14px;grid-template-columns:minm
 }
 
 @media(max-width:600px){.feature-actions{grid-template-columns:1fr 1fr}.feature-actions .btn{font-size:11px;padding:9px 5px}.cloud-status{font-size:9px}.piece-glyph{font-size:clamp(27px,8vw,46px)}}
+
+
+@media(max-width:600px){
+ main:has(>.side[hidden]){grid-template-columns:minmax(0,1fr)}
+ .board-wrap:has(>#startScreen){min-height:0;display:block}
+ #startScreen.start-screen{min-height:0;padding:0;place-items:center}
+ #startScreen .start-card{max-width:100%;padding:20px 15px}
+}
+@media(max-width:900px) and (max-height:500px) and (orientation:landscape){
+ main:has(>.side[hidden]){grid-template-columns:minmax(0,1fr);max-width:650px}
+ .board-wrap:has(>#startScreen){min-height:0;display:block}
+ #startScreen.start-screen{min-height:0;padding:0}
+}
