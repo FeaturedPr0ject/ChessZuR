@@ -125,6 +125,8 @@ function startReplayAutoplay(){stopReplayAutoplay();replayTimer=setInterval(()=>
 async function analyzeLostGame(item){
  replayAnalysis=[];replayAnalysisReady=false;renderReplayCoach();
  try{
+  let {data:{session}}=await supabase.auth.getSession();
+  if(!session){const {data,error:authError}=await supabase.auth.signInAnonymously();if(authError)throw authError;session=data.session}
   const pgn=item.pgn||"";
   const {data,error}=await supabase.functions.invoke("chess-review",{body:{pgn,moves:item.moves||[],result:item.result||"loss"}});
   if(error)throw new Error(error.message||"Không gọi được Supabase Edge Function");
