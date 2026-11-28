@@ -57,7 +57,7 @@ function updateStatus(){
  if(gameOverByClock){title="Hết thời gian!";desc=(remaining.w<=0?"Bot":"Bạn")+" chiến thắng";$("statusIcon").textContent="⏱"}
  else if(game.isCheckmate()){title="Chiếu hết!";desc=(game.turn()==="w"?"Bot":"Bạn")+" chiến thắng";$("statusIcon").textContent="🏆"}
  else if(game.isDraw()){title="Ván cờ hòa";desc=game.isStalemate()?"Hết nước đi hợp lệ":"Điều kiện hòa đã được đáp ứng";$("statusIcon").textContent="🤝"}
- else if(game.isCheck()){$("statusIcon").textContent="⚠️";title=side+" đang bị chiếu!";desc="Hãy bảo vệ vua"}else $("statusIcon").textContent=game.turn()==="w"?"♙":"♟";
+ else if(game.isCheck()){$("statusIcon").textContent="⚠️";title=side+" đang bị chiếu!";desc="Hãy bảo vệ vua"}else $("statusIcon").innerHTML=pieceIconHTML(game.turn(),"p","status-piece-icon");
  $("statusTitle").textContent=title;$("statusDesc").textContent=desc;$("whiteTurn").style.opacity=game.turn()==="w"?"1":".45";$("blackTurn").style.opacity=game.turn()==="b"?"1":".45";$("orientation").innerHTML=flipped?pieceIconHTML("b","p","orientation-piece")+" Bot ở phía dưới":pieceIconHTML("w","p","orientation-piece")+" Bạn đi trước";
 }
 const values={p:100,n:320,b:330,r:500,q:900,k:20000};
