@@ -103,7 +103,7 @@ document.querySelectorAll("[data-close]").forEach(btn=>btn.addEventListener("cli
 document.querySelectorAll(".feature-overlay").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)closeFeatureDialog(el.id)}));
 for(const key of ["boardTheme","pieceStyle"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.value;saveFeatureSettings()})}
 for(const key of ["soundEnabled","vibrationEnabled"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.checked;saveFeatureSettings()})}
-const geminiKeyInput=$("geminiApiKey");if(geminiKeyInput)geminiKeyInput.value=localStorage.getItem("chesszur-gemini-key")||"";$("saveGeminiKey").addEventListener("click",()=>{const value=geminiKeyInput.value.trim();if(value)localStorage.setItem("chesszur-gemini-key",value);else localStorage.removeItem("chesszur-gemini-key");$("geminiKeyStatus").textContent=value?"Đã lưu API key trên thiết bị này.":"Đã xóa API key.";if(replayMode&&replayItem&&isLostGame(replayItem))analyzeLostGame(replayItem)});
+localStorage.removeItem("chesszur-gemini-key");
 
 function replayMoveAt(index){return replayMoves[index-1]||null}
 function currentReplayAnnotation(){return replayAnalysis.find(item=>Number(item.ply)===replayIndex)||null}
@@ -124,20 +124,14 @@ function stopReplayAutoplay(){if(replayTimer){clearInterval(replayTimer);replayT
 function startReplayAutoplay(){stopReplayAutoplay();replayTimer=setInterval(()=>{if(!replayMode||replayIndex>=replayMoves.length){stopReplayAutoplay();return}replayIndex++;showReplayPosition();if(replayIndex>=replayMoves.length)stopReplayAutoplay()},2000)}
 async function analyzeLostGame(item){
  replayAnalysis=[];replayAnalysisReady=false;renderReplayCoach();
- const key=localStorage.getItem("chesszur-gemini-key")||"";
- if(!key){$("replayCoachTitle").textContent="Chưa kết nối Gemini";$("replayCoachBubble").textContent="Mở Cá nhân hóa → Gemini API, dán API key rồi lưu. Sau đó mở lại ván thua để phân tích.";return}
  try{
-  const chess=new Chess();if(item.pgn)chess.loadPgn(item.pgn);else for(const move of item.moves||[])chess.move(move);
-  const verbose=chess.history({verbose:true});
-  const moves=verbose.map((m,i)=>({ply:i+1,move_number:Math.ceil((i+1)/2),side:m.color==="w"?"white":"black",san:m.san,from:m.from,to:m.to}));
-  const prompt="Bạn là huấn luyện viên cờ vua. Phân tích ván cờ PGN dưới đây, người chơi là Trắng và đã thua. Chỉ đánh giá các nước của Trắng (side white). Tìm các nước sai hoặc cơ hội bị bỏ lỡ. Dùng ký hiệu chuẩn: !! nước xuất sắc, ! nước tốt, !? thú vị/rủi ro, ? sai, ?? sai lầm nghiêm trọng, ?! đáng nghi. Chỉ gán ký hiệu khi có lý do rõ; nước bình thường không cần trả về. Không bịa biến thể. Trả về JSON object đúng dạng {\"reviews\":[{\"ply\":1,\"mark\":\"?\",\"reason\":\"Giải thích ngắn bằng tiếng Việt, nói rõ vấn đề chiến thuật\",\"best_alternative\":\"Nước thay thế dạng SAN nếu chắc chắn, nếu không để trống\"}]}. ply là số thứ tự nửa nước bắt đầu từ 1. Tối đa 12 nhận xét. Danh sách nước đi: "+JSON.stringify(moves);
-  const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",temperature:0.2,maxOutputTokens:2200}})});
-  const data=await response.json();if(!response.ok)throw new Error(data.error?.message||"Gemini API trả về lỗi "+response.status);
-  const raw=data.candidates?.[0]?.content?.parts?.map(part=>part.text||"").join("")||"{}";
-  const parsed=JSON.parse(raw.replace(/^\s*```(?:json)?|\`\`\`\s*$/g,""));
-  replayAnalysis=Array.isArray(parsed.reviews)?parsed.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length):[];
+  const pgn=item.pgn||"";
+  const {data,error}=await supabase.functions.invoke("chess-review",{body:{pgn,moves:item.moves||[],result:item.result||"loss"}});
+  if(error)throw new Error(error.message||"Không gọi được Supabase Edge Function");
+  if(data?.error)throw new Error(data.error);
+  replayAnalysis=Array.isArray(data?.reviews)?data.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length):[];
   replayAnalysisReady=true;renderReplayCoach();
- }catch(error){replayAnalysisReady=false;$("replayCoachTitle").textContent="Gemini chưa phân tích được";$("replayCoachBubble").textContent=error.message+" · Kiểm tra API key/quota trong Google AI Studio.";console.warn("Gemini review:",error)}
+ }catch(error){replayAnalysisReady=false;$("replayCoachTitle").textContent="Supabase chưa phân tích được";$("replayCoachBubble").textContent=error.message+" · Kiểm tra Edge Function chess-review và Secret GEMINI_API_KEY trong Supabase.";console.warn("Supabase chess review:",error)}
 }
 function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();replayItem=item;replayAnalysis=[];replayAnalysisReady=false;stopClock();stopReplayAutoplay();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition();if(isLostGame(item))analyzeLostGame(item);else renderReplayCoach();startReplayAutoplay()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
 function closeReplay(){stopReplayAutoplay();replayMode=false;replayItem=null;$("replayDialog").hidden=true;boardEl.classList.remove("replay-board");boardHome.insertBefore(boardEl,boardHomeNext);if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
