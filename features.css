@@ -25,3 +25,21 @@ body[data-board-theme="classic"]{--light:#f0d9b5;--dark:#b58863;--green:#c9a66b}
 body[data-board-theme="blue"]{--light:#dce8ef;--dark:#668ba5;--green:#8fc8e8}
 body[data-board-theme="purple"]{--light:#e5dff0;--dark:#82739c;--green:#c2a9ed}
 @media(max-width:600px){.feature-actions{gap:7px}.feature-actions .btn{min-height:44px}.feature-dialog{padding:20px 16px;border-radius:17px}.feature-dialog-head h2{font-size:22px}.feature-overlay{padding:12px calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}.history-item{padding:10px}.history-item .btn{min-height:38px}}
+
+/* Cohesive interface palettes: each board theme also recolors the surrounding UI. */
+body[data-board-theme="forest"]{--green:#a8d5a2;--bg:#101512;--panel:#1a211c;--panel2:#222b25;--line:#303b33;--text:#f2f5f0;--muted:#aab5ac;--light:#e8eadf;--dark:#779477;--gold:#e7c66a;--ui-glow:#263b2d}
+body[data-board-theme="classic"]{--green:#d6b47a;--bg:#18130f;--panel:#241d17;--panel2:#30271f;--line:#49392b;--text:#f5eadb;--muted:#c0ad98;--light:#f0d9b5;--dark:#b58863;--gold:#f1cb71;--ui-glow:#503b28}
+body[data-board-theme="blue"]{--green:#8fc8e8;--bg:#0d151c;--panel:#17232d;--panel2:#20313e;--line:#304756;--text:#eaf4fa;--muted:#a9bfcd;--light:#dce8ef;--dark:#668ba5;--gold:#f1cc70;--ui-glow:#294c63}
+body[data-board-theme="purple"]{--green:#c2a9ed;--bg:#15111d;--panel:#211a2d;--panel2:#2d243b;--line:#443654;--text:#f2ecfb;--muted:#bdb0d1;--light:#e5dff0;--dark:#82739c;--gold:#f0ce79;--ui-glow:#403057}
+body[data-board-theme]{background:radial-gradient(ellipse at top,color-mix(in srgb,var(--green) 13%,var(--bg)) 0,var(--bg) 58%)}
+body[data-board-theme] .start-card,body[data-board-theme] .feature-dialog,body[data-board-theme] .promotion-card{background:linear-gradient(145deg,var(--panel2),var(--panel));border-color:var(--line)}
+body[data-board-theme] .start-mark{background:var(--ui-glow);color:var(--green)}
+body[data-board-theme] .time-option.active,body[data-board-theme] .promotion-option:hover,body[data-board-theme] .promotion-option:focus-visible{background:var(--ui-glow);border-color:var(--green)}
+body[data-board-theme] .btn:hover{border-color:var(--green);background:var(--ui-glow)}
+body[data-board-theme] .btn.primary,body[data-board-theme] .start-button{background:var(--green);border-color:var(--green);color:var(--bg)}
+body[data-board-theme] .strength-slider{background:linear-gradient(90deg,var(--dark),var(--green))}
+body[data-board-theme] .strength-slider::-webkit-slider-thumb{border-color:var(--dark)}
+body[data-board-theme] .strength-slider::-moz-range-thumb{border-color:var(--dark)}
+body[data-board-theme] .turn,body[data-board-theme] .clock.active{border-color:var(--green)}
+body[data-board-theme] .clock.active strong,body[data-board-theme] .setup-heading output,body[data-board-theme] .eyebrow{color:var(--green)}
+body[data-board-theme] .clock.active{box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 20%,transparent)}
