@@ -103,7 +103,7 @@ document.querySelectorAll("[data-close]").forEach(btn=>btn.addEventListener("cli
 document.querySelectorAll(".feature-overlay").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)closeFeatureDialog(el.id)}));
 for(const key of ["boardTheme","pieceStyle"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.value;saveFeatureSettings()})}
 for(const key of ["soundEnabled","vibrationEnabled"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.checked;saveFeatureSettings()})}
-const geminiKeyInput=$("geminiApiKey");if(geminiKeyInput)geminiKeyInput.value=localStorage.getItem("chesszur-gemini-key")||"";$("saveGeminiKey").addEventListener("click",()=>{const value=geminiKeyInput.value.trim();if(value)localStorage.setItem("chesszur-gemini-key",value);else localStorage.removeItem("chesszur-gemini-key");$("geminiKeyStatus").textContent=value?"Đã lưu API key trên thiết bị này.":"Đã xóa API key."});
+const geminiKeyInput=$("geminiApiKey");if(geminiKeyInput)geminiKeyInput.value=localStorage.getItem("chesszur-gemini-key")||"";$("saveGeminiKey").addEventListener("click",()=>{const value=geminiKeyInput.value.trim();if(value)localStorage.setItem("chesszur-gemini-key",value);else localStorage.removeItem("chesszur-gemini-key");$("geminiKeyStatus").textContent=value?"Đã lưu API key trên thiết bị này.":"Đã xóa API key.";if(replayMode&&replayItem&&isLostGame(replayItem))analyzeLostGame(replayItem)});
 
 function replayMoveAt(index){return replayMoves[index-1]||null}
 function currentReplayAnnotation(){return replayAnalysis.find(item=>Number(item.ply)===replayIndex)||null}
