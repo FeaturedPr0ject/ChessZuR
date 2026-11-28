@@ -57,3 +57,14 @@ body[data-board-theme="purple"] .logo img{filter:hue-rotate(145deg) saturate(.9)
 .replay-controls{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-top:16px}
 .replay-controls strong{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .replay-controls button:last-child{justify-self:end}
+
+/* SVG classic decorations; Unicode piece mode keeps its original glyph rendering. */
+.svg-piece-icon{display:inline-block;object-fit:contain;vertical-align:middle}
+.ui-piece-icon{width:1.35em;height:1.35em}
+#pieceBadgeIcon{display:inline-flex;align-items:center;vertical-align:middle}
+#startMarkIcon{display:grid;place-items:center}
+#startMarkIcon .ui-piece-icon{width:100%;height:100%}
+.status-piece-icon{width:1.35em;height:1.35em;object-fit:contain;vertical-align:middle}
+.orientation-piece{width:1.25em;height:1.25em;object-fit:contain;vertical-align:middle;margin-right:3px}
+body[data-piece-style="unicode"] .unicode-piece{font-family:"Segoe UI Symbol",serif}
+#pieceBadgeIcon .unicode-piece{font-size:1.2em;line-height:1}
