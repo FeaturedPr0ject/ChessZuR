@@ -68,47 +68,79 @@ Deno.serve(async (req: Request) => {
   ].join("\n\n");
 
   try {
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              reviews: {
-                type: "ARRAY",
-                items: {
-                  type: "OBJECT",
-                  properties: {
-                    ply: { type: "INTEGER" },
-                    mark: { type: "STRING", enum: ["!!", "!", "!?", "?", "??", "?!"] },
-                    mark_verdict: { type: "STRING", enum: ["Phù hợp", "Chưa phù hợp"] },
-                    emotion: { type: "STRING" },
-                    emotion_reason: { type: "STRING" },
-                    reason: { type: "STRING" },
-                    best_alternative: { type: "STRING" }
-                  },
-                  required: ["ply", "mark", "mark_verdict", "emotion", "emotion_reason", "reason", "best_alternative"]
-                }
+    const requestBody = {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            reviews: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  ply: { type: "INTEGER" },
+                  mark: { type: "STRING", enum: ["!!", "!", "!?", "?", "??", "?!"] },
+                  mark_verdict: { type: "STRING", enum: ["Phù hợp", "Chưa phù hợp"] },
+                  emotion: { type: "STRING" },
+                  emotion_reason: { type: "STRING" },
+                  reason: { type: "STRING" },
+                  best_alternative: { type: "STRING" }
+                },
+                required: ["ply", "mark", "mark_verdict", "emotion", "emotion_reason", "reason", "best_alternative"]
               }
-            },
-            required: ["reviews"]
+            }
           },
-          maxOutputTokens: 3200
-        }
-      })
-    });
+          required: ["reviews"]
+        },
+        maxOutputTokens: 3200
+      }
+    };
 
-    const result = await response.json();
-    if (!response.ok) {
-      const message = result?.error?.message || "Gemini API request failed";
-      return jsonResponse({ error: message }, response.status >= 500 ? 502 : response.status);
+    const models = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+    const retryableStatuses = new Set([429, 500, 502, 503, 504]);
+    let response: Response | null = null;
+    let result: any = {};
+    let lastError = "Gemini API request failed";
+    let usedModel = models[0];
+
+    for (const model of models) {
+      usedModel = model;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey
+            },
+            body: JSON.stringify(requestBody)
+          });
+          const responseText = await response.text();
+          try {
+            result = responseText ? JSON.parse(responseText) : {};
+          } catch {
+            result = {};
+          }
+
+          if (response.ok) break;
+          lastError = result?.error?.message || `Gemini returned HTTP ${response.status}`;
+          if (!retryableStatuses.has(response.status)) break;
+        } catch (error) {
+          lastError = error instanceof Error ? error.message : "Network error calling Gemini";
+          response = null;
+        }
+
+        if (attempt < 1) await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1)));
+      }
+      if (response?.ok) break;
+      if (response && !retryableStatuses.has(response.status)) break;
+    }
+
+    if (!response?.ok) {
+      const status = response?.status === 429 ? 503 : 502;
+      return jsonResponse({ error: `Gemini unavailable (${usedModel}): ${lastError}` }, status);
     }
 
     const text = result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text || "").join("") || "{}";
