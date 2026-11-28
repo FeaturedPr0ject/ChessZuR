@@ -129,42 +129,72 @@ async function analyzeLostGame(item){
  replayAnalysis=[];replayAnalysisReady=false;renderReplayCoach();
  const retryButton=$("replayCoachRetry");
  if(retryButton)retryButton.hidden=true;
+ const showError=(title,message)=>{
+  replayAnalysisReady=false;
+  $("replayCoachTitle").textContent=title;
+  $("replayCoachBubble").textContent=message;
+  if(retryButton)retryButton.hidden=false;
+ };
+ const readResponse=async response=>{
+  const raw=await response.text();
+  let data={};
+  try{data=raw?JSON.parse(raw):{}}catch{data={error:raw.slice(0,700)}}
+  return {response,data};
+ };
  try{
-  let {data:{session}}=await supabase.auth.getSession();
+  $("replayCoachTitle").textContent="Đang kiểm tra Supabase…";
+  $("replayCoachBubble").textContent="1/3 · Kiểm tra phiên đăng nhập và quyền truy cập.";
+  let {data:{session},error:sessionError}=await supabase.auth.getSession();
+  if(sessionError)throw new Error("Không đọc được phiên Supabase: "+sessionError.message);
   if(!session){
-   const {data,error:authError}=await supabase.auth.signInAnonymously();
-   if(authError)throw new Error("Đăng nhập ẩn danh thất bại: "+authError.message);
+   const {data,error}=await supabase.auth.signInAnonymously();
+   if(error)throw new Error("Anonymous Sign-ins chưa hoạt động: "+error.message);
    session=data.session;
   }
-  if(!session?.access_token)throw new Error("Supabase chưa cấp access token. Hãy tải lại trang và thử lại.");
+  if(!session?.access_token)throw new Error("Supabase không cấp access token. Kiểm tra Anonymous Sign-Ins và thử tải lại trang.");
+  const headers={"Content-Type":"application/json","apikey":supabaseKey,"Authorization":"Bearer "+session.access_token};
+  $("replayCoachBubble").textContent="2/3 · Kiểm tra endpoint chess-review và Secret GEMINI_API_KEY.";
+  let probe;
+  try{
+   probe=await fetch(chessReviewEndpoint,{method:"POST",headers,body:"{}",signal:AbortSignal.timeout(20000)});
+  }catch(error){
+   throw new Error("Không kết nối được endpoint. Kiểm tra mạng, URL Function và CORS. Chi tiết: "+(error.message||error));
+  }
+  const checked=await readResponse(probe);
+  if(probe.status===404)throw new Error("HTTP 404: Supabase không tìm thấy chess-review. Function chưa deploy hoặc tên deploy không đúng.");
+  if(probe.status===401)throw new Error("HTTP 401: JWT không được chấp nhận. Kiểm tra Anonymous Sign-ins và cấu hình verify_jwt.");
+  if(probe.status===403)throw new Error("HTTP 403: Request bị chặn. Kiểm tra CORS và Allowed Origin của Function.");
+  if(probe.status===503)throw new Error("HTTP 503: Function đã được tìm thấy nhưng thiếu Secret GEMINI_API_KEY trong Supabase.");
+  if(probe.status!==400||!String(checked.data?.error||"").includes("Không có dữ liệu ván cờ")){
+   throw new Error("Kiểm tra endpoint thất bại · HTTP "+probe.status+" · "+(checked.data?.error||probe.statusText||"Phản hồi không như dự kiến"));
+  }
+  $("replayCoachBubble").textContent="3/3 · Endpoint hoạt động, JWT hợp lệ và Secret đã được tìm thấy. Đang gửi ván cờ cho Gemini…";
   const response=await fetch(chessReviewEndpoint,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "apikey":supabaseKey,
-    "Authorization":"Bearer "+session.access_token
-   },
+   method:"POST",headers,
    body:JSON.stringify({pgn:item.pgn||"",moves:item.moves||[],result:item.result||"loss"}),
    signal:AbortSignal.timeout(45000)
   });
-  const raw=await response.text();
-  let data={};
-  try{data=raw?JSON.parse(raw):{}}catch{data={error:raw.slice(0,500)}}
+  const result=await readResponse(response);
   if(!response.ok){
-   const labels={401:"JWT không hợp lệ hoặc Function yêu cầu đăng nhập.",403:"Function từ chối request (kiểm tra CORS/quyền truy cập).",404:"Không tìm thấy Edge Function chess-review — kiểm tra đã deploy đúng tên chưa.",429:"Gemini đang giới hạn yêu cầu hoặc bạn cần chờ trước khi phân tích tiếp.",500:"Edge Function gặp lỗi nội bộ.",502:"Gemini API đang lỗi hoặc không phản hồi.",503:"Thiếu Secret GEMINI_API_KEY trong Supabase."};
-   throw new Error("HTTP "+response.status+" · "+(data.error||labels[response.status]||response.statusText||"Request thất bại"));
+   const messages={
+    400:"Dữ liệu PGN/nước đi không hợp lệ.",
+    401:"JWT hết hạn hoặc không hợp lệ.",
+    403:"Function từ chối request. Kiểm tra CORS/Allowed Origin.",
+    404:"Không tìm thấy chess-review.",
+    429:"Function đang giới hạn yêu cầu. Chờ 15 giây rồi thử lại.",
+    500:"Lỗi bên trong Edge Function hoặc dữ liệu Gemini không đọc được.",
+    502:"Gemini API từ chối hoặc không phản hồi. Kiểm tra model, API key và quota.",
+    503:"Không tìm thấy Secret GEMINI_API_KEY."
+   };
+   throw new Error("Gemini/Function trả HTTP "+response.status+" · "+(result.data.error||messages[response.status]||response.statusText||"Request thất bại"));
   }
-  if(data?.error)throw new Error(data.error);
-  if(!Array.isArray(data?.reviews))throw new Error("Function đã phản hồi nhưng dữ liệu reviews không đúng định dạng.");
-  replayAnalysis=data.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length);
+  if(!Array.isArray(result.data?.reviews))throw new Error("Function trả HTTP 200 nhưng thiếu mảng reviews. Kiểm tra response của Edge Function.");
+  replayAnalysis=result.data.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length);
   replayAnalysisReady=true;renderReplayCoach();
  }catch(error){
-  replayAnalysisReady=false;
-  const message=error.name==="TimeoutError"||error.name==="AbortError"?"Hết thời gian chờ 45 giây. Hãy thử lại.":error.message||"Không xác định được lỗi.";
-  $("replayCoachTitle").textContent="Không thể phân tích ván cờ";
-  $("replayCoachBubble").textContent=message;
-  if(retryButton)retryButton.hidden=false;
-  console.warn("ChessZuR Coach:",error);
+  const message=error.name==="TimeoutError"||error.name==="AbortError"?"Hết thời gian chờ. Kiểm tra trạng thái Edge Function/Gemini rồi thử lại.":error.message||"Không xác định được lỗi.";
+  showError("ChessZuR Coach · Chẩn đoán thất bại",message);
+  console.warn("ChessZuR Coach diagnostic:",error);
  }
 }
 function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();replayItem=item;replayAnalysis=[];replayAnalysisReady=false;stopClock();stopReplayAutoplay();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;replayRenderedIndex=0;$("replayCoach").hidden=!isLostGame(item);$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition();if(isLostGame(item))analyzeLostGame(item);else renderReplayCoach();startReplayAutoplay()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
