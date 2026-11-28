@@ -43,3 +43,9 @@ body[data-board-theme] .strength-slider::-moz-range-thumb{border-color:var(--dar
 body[data-board-theme] .turn,body[data-board-theme] .clock.active{border-color:var(--green)}
 body[data-board-theme] .clock.active strong,body[data-board-theme] .setup-heading output,body[data-board-theme] .eyebrow{color:var(--green)}
 body[data-board-theme] .clock.active{box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 20%,transparent)}
+
+/* Match the standalone SVG brand mark to the active palette. */
+body[data-board-theme="forest"] .logo img{filter:none}
+body[data-board-theme="classic"] .logo img{filter:hue-rotate(-78deg) saturate(.9)}
+body[data-board-theme="blue"] .logo img{filter:hue-rotate(82deg) saturate(.95)}
+body[data-board-theme="purple"] .logo img{filter:hue-rotate(145deg) saturate(.9)}
