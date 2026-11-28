@@ -2,3 +2,6 @@ project_id = "rbdlfzoqwuchkjbgzmjb"
 
 [functions.chess-ai]
 verify_jwt = false
+
+[functions.chess-review]
+verify_jwt = true
