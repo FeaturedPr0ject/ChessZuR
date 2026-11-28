@@ -49,3 +49,11 @@ body[data-board-theme="forest"] .logo img{filter:none}
 body[data-board-theme="classic"] .logo img{filter:hue-rotate(-78deg) saturate(.9)}
 body[data-board-theme="blue"] .logo img{filter:hue-rotate(82deg) saturate(.95)}
 body[data-board-theme="purple"] .logo img{filter:hue-rotate(145deg) saturate(.9)}
+
+.replay-dialog{width:min(100%,560px)}
+.replay-status{text-align:center;color:var(--muted);font-size:12px;margin:-8px 0 12px}
+.replay-board{width:min(100%,480px);margin:0 auto;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,1fr);overflow:hidden;border-radius:8px;pointer-events:none}
+.replay-board .square{min-width:0;min-height:0}
+.replay-controls{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-top:16px}
+.replay-controls strong{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.replay-controls button:last-child{justify-self:end}
