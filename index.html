@@ -10,10 +10,10 @@
 <link rel="stylesheet" href="mobile.css" media="screen and (max-width: 600px) and (pointer: coarse), screen and (max-width: 900px) and (max-height: 500px) and (orientation: landscape) and (pointer: coarse)">
 </head>
 <body>
-<header><div class="brand"><div class="logo"><img src="assets/logo.svg" alt="ChessZuR"></div><div><h1>ChessZuR</h1><p>Play. Think. Win.</p></div></div><div class="pill">♟ Cờ vua · miễn phí</div></header>
+<header><div class="brand"><div class="logo"><img src="assets/logo.svg" alt="ChessZuR"></div><div><h1>ChessZuR</h1><p>Play. Think. Win.</p></div></div><div class="pill"><span id="pieceBadgeIcon">♟</span> Cờ vua · miễn phí</div></header>
 <section class="start-screen" id="startScreen">
  <div class="start-card">
-  <div class="start-mark">♞</div><p class="eyebrow">CHESSZUR · PLAY YOUR GAME</p>
+  <div class="start-mark" id="startMarkIcon">♞</div><p class="eyebrow">CHESSZUR · PLAY YOUR GAME</p>
   <h2>Sẵn sàng cho ván đấu?</h2><p class="start-desc">Bạn cầm quân Trắng. Hãy chọn cấp độ AI và thời gian trước khi bắt đầu.</p>
   <div class="setup-section"><div class="setup-heading"><span>Cấp độ đối thủ</span><output id="startStrengthValue">500 · Huấn luyện viên AI</output></div>
    <input id="strength" class="strength-slider" type="range" min="0" max="1000" step="1" value="500">
