@@ -14,7 +14,10 @@ let replayMode=false,replayMoves=[],replayIndex=0,replayRenderedIndex=0,replayRe
 const featureDefaults={boardTheme:"forest",pieceStyle:"svg",soundEnabled:true,vibrationEnabled:true};
 let featureSettings={...featureDefaults,...JSON.parse(localStorage.getItem("chesszur-settings")||"{}")};
 let savedGames=JSON.parse(localStorage.getItem("chesszur-history")||"[]");
-const supabase=createClient("https://rbdlfzoqwuchkjbgzmjb.supabase.co","sb_publishable_4QTH9c6hCCXWElBBZjlJdg_iXuA7RX3");
+const supabaseUrl="https://rbdlfzoqwuchkjbgzmjb.supabase.co";
+const supabaseKey="sb_publishable_4QTH9c6hCCXWElBBZjlJdg_iXuA7RX3";
+const chessReviewEndpoint="https://rbdlfzoqwuchkjbgzmjb.supabase.co/functions/v1/chess-review";
+const supabase=createClient(supabaseUrl,supabaseKey);
 const files="abcdefgh";
 function squareName(r,c){return files[c]+(8-r)}
 function formatTime(ms){const total=Math.max(0,Math.ceil(ms/1000)),m=Math.floor(total/60),s=total%60;return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
@@ -124,16 +127,45 @@ function stopReplayAutoplay(){if(replayTimer){clearInterval(replayTimer);replayT
 function startReplayAutoplay(){stopReplayAutoplay();replayTimer=setInterval(()=>{if(!replayMode||replayIndex>=replayMoves.length){stopReplayAutoplay();return}replayIndex++;showReplayPosition();if(replayIndex>=replayMoves.length)stopReplayAutoplay()},2000)}
 async function analyzeLostGame(item){
  replayAnalysis=[];replayAnalysisReady=false;renderReplayCoach();
+ const retryButton=$("replayCoachRetry");
+ if(retryButton)retryButton.hidden=true;
  try{
   let {data:{session}}=await supabase.auth.getSession();
-  if(!session){const {data,error:authError}=await supabase.auth.signInAnonymously();if(authError)throw authError;session=data.session}
-  const pgn=item.pgn||"";
-  const {data,error}=await supabase.functions.invoke("chess-review",{body:{pgn,moves:item.moves||[],result:item.result||"loss"}});
-  if(error)throw new Error(error.message||"Không gọi được Supabase Edge Function");
+  if(!session){
+   const {data,error:authError}=await supabase.auth.signInAnonymously();
+   if(authError)throw new Error("Đăng nhập ẩn danh thất bại: "+authError.message);
+   session=data.session;
+  }
+  if(!session?.access_token)throw new Error("Supabase chưa cấp access token. Hãy tải lại trang và thử lại.");
+  const response=await fetch(chessReviewEndpoint,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "apikey":supabaseKey,
+    "Authorization":"Bearer "+session.access_token
+   },
+   body:JSON.stringify({pgn:item.pgn||"",moves:item.moves||[],result:item.result||"loss"}),
+   signal:AbortSignal.timeout(45000)
+  });
+  const raw=await response.text();
+  let data={};
+  try{data=raw?JSON.parse(raw):{}}catch{data={error:raw.slice(0,500)}}
+  if(!response.ok){
+   const labels={401:"JWT không hợp lệ hoặc Function yêu cầu đăng nhập.",403:"Function từ chối request (kiểm tra CORS/quyền truy cập).",404:"Không tìm thấy Edge Function chess-review — kiểm tra đã deploy đúng tên chưa.",429:"Gemini đang giới hạn yêu cầu hoặc bạn cần chờ trước khi phân tích tiếp.",500:"Edge Function gặp lỗi nội bộ.",502:"Gemini API đang lỗi hoặc không phản hồi.",503:"Thiếu Secret GEMINI_API_KEY trong Supabase."};
+   throw new Error("HTTP "+response.status+" · "+(data.error||labels[response.status]||response.statusText||"Request thất bại"));
+  }
   if(data?.error)throw new Error(data.error);
-  replayAnalysis=Array.isArray(data?.reviews)?data.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length):[];
+  if(!Array.isArray(data?.reviews))throw new Error("Function đã phản hồi nhưng dữ liệu reviews không đúng định dạng.");
+  replayAnalysis=data.reviews.filter(x=>Number.isInteger(Number(x.ply))&&Number(x.ply)>0&&Number(x.ply)<=replayMoves.length);
   replayAnalysisReady=true;renderReplayCoach();
- }catch(error){replayAnalysisReady=false;$("replayCoachTitle").textContent="Supabase chưa phân tích được";$("replayCoachBubble").textContent=error.message+" · Kiểm tra Edge Function chess-review và Secret GEMINI_API_KEY trong Supabase.";console.warn("Supabase chess review:",error)}
+ }catch(error){
+  replayAnalysisReady=false;
+  const message=error.name==="TimeoutError"||error.name==="AbortError"?"Hết thời gian chờ 45 giây. Hãy thử lại.":error.message||"Không xác định được lỗi.";
+  $("replayCoachTitle").textContent="Không thể phân tích ván cờ";
+  $("replayCoachBubble").textContent=message;
+  if(retryButton)retryButton.hidden=false;
+  console.warn("ChessZuR Coach:",error);
+ }
 }
 function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();replayItem=item;replayAnalysis=[];replayAnalysisReady=false;stopClock();stopReplayAutoplay();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;replayRenderedIndex=0;$("replayCoach").hidden=!isLostGame(item);$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition();if(isLostGame(item))analyzeLostGame(item);else renderReplayCoach();startReplayAutoplay()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
 function closeReplay(){stopReplayAutoplay();replayMode=false;replayItem=null;$("replayDialog").hidden=true;boardEl.classList.remove("replay-board");boardHome.insertBefore(boardEl,boardHomeNext);if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
@@ -141,6 +173,7 @@ $("historyList").addEventListener("click",e=>{const btn=e.target.closest("[data-
 $("replayPrev").addEventListener("click",()=>{if(replayIndex>0){replayIndex--;showReplayPosition()}});
 $("replayNext").addEventListener("click",()=>{if(replayIndex<replayMoves.length){replayIndex++;showReplayPosition()}});
 $("replayClose").addEventListener("click",closeReplay);
+$("replayCoachRetry").addEventListener("click",()=>{if(replayItem&&isLostGame(replayItem))analyzeLostGame(replayItem)});
 
 $("clearHistory").addEventListener("click",async()=>{if(!confirm("Xóa lịch sử ván đấu đã lưu?"))return;savedGames=[];localStorage.removeItem("chesszur-history");renderHistory();if(cloudUser){const {error}=await supabase.from("chess_games").delete().eq("user_id",cloudUser.id);if(error)$("cloudStatus").textContent="Đã xóa trên thiết bị, chưa xóa được dữ liệu đám mây: "+error.message;else $("cloudStatus").textContent="Đã xóa lịch sử trên thiết bị và Supabase"}});
 applyFeatureSettings();renderHistory();connectCloud();
