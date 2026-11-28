@@ -97,3 +97,7 @@ body[data-piece-style="unicode"] .unicode-piece{font-family:"Segoe UI Symbol",se
 .replay-move-mark[data-mark="!?"],.replay-move-mark[data-mark="?!"]{background:var(--gold);color:#21190c}
 .replay-move-mark[data-mark="?"],.replay-move-mark[data-mark="??"]{background:#b95750;color:#fff}
 .gemini-settings a{color:var(--green);text-decoration:underline;text-underline-offset:2px}
+
+.replay-dialog{overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
+.replay-dialog::-webkit-scrollbar{display:none;width:0;height:0}
+.replay-coach[hidden]{display:none!important}
