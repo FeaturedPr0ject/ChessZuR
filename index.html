@@ -11,6 +11,8 @@
 </head>
 <body>
 <header><div class="brand"><div class="logo"><img src="assets/logo.svg" alt="ChessZuR"></div><div><h1>ChessZuR</h1><p>Play. Think. Win.</p></div></div><div class="pill"><span id="pieceBadgeIcon">♟</span> Cờ vua · miễn phí</div></header>
+<main id="gameView">
+<section class="board-wrap">
 <section class="start-screen" id="startScreen">
  <div class="start-card">
   <div class="start-mark" id="startMarkIcon">♞</div><p class="eyebrow">CHESSZUR · PLAY YOUR GAME</p>
@@ -32,16 +34,16 @@
   <p class="start-footnote">Đồng hồ bắt đầu khi bạn nhấn nút này.</p>
  </div>
 </section>
-<main id="gameView" hidden>
-<section class="board-wrap">
+<div id="boardContent" hidden>
 <div class="clock-row"><div class="clock" id="blackClock"><span class="clock-label">CHESSZUR BOT</span><strong id="blackTime">05:00</strong></div><span class="clock-mode" id="clockMode">5 phút</span></div>
 <div class="player"><div class="avatar"><img src="assets/pieces/black-king.svg" alt=""></div><div class="player-info"><div class="player-name">ChessZuR Bot</div><div class="player-sub" id="blackPlayerSub">Đối thủ AI · Đen</div></div><span class="turn" id="blackTurn">ĐEN</span></div>
 <div class="board" id="board" aria-label="Bàn cờ vua"></div>
 <div class="board-footer"><span id="orientation">♙ Bạn đi trước</span><span>ChessZuR</span></div>
 <div class="player" style="padding:12px 2px 2px"><div class="avatar"><img src="assets/pieces/white-king.svg" alt=""></div><div class="player-info"><div class="player-name">Bạn</div><div class="player-sub">Người chơi · Trắng</div></div><span class="turn" id="whiteTurn">TRẮNG</span></div>
 <div class="clock-row bottom-clock"><div class="clock active" id="whiteClock"><span class="clock-label">BẠN · TRẮNG</span><strong id="whiteTime">05:00</strong></div><span class="clock-increment" id="clockIncrement">+0 giây / nước</span></div>
+</div>
 </section>
-<aside class="side">
+<aside class="side" id="gameSide" hidden>
 <section class="card"><h2>Trận đấu</h2><div class="status"><div class="status-icon" id="statusIcon">♟</div><div><strong id="statusTitle">Trắng đến lượt</strong><small id="statusDesc">Chọn quân để bắt đầu</small></div></div><div class="actions"><button class="btn primary" id="newGame">Ván mới</button><button class="btn" id="undo">↶ Đi lại</button><button class="btn" id="redo" disabled>↷ Làm lại</button><button class="btn" id="flip">Lật bàn cờ</button><button class="btn" id="copyFen">Sao chép FEN</button></div><p class="note game-settings" id="gameSettings"></p><div class="feature-actions"><button class="btn" id="settingsButton">⚙ Cá nhân hóa</button><button class="btn" id="historyButton">▤ Lịch sử ván</button></div><p class="cloud-status" id="cloudStatus">Đang kết nối kho lưu trữ…</p></section>
 <section class="card"><h2>Nước đi</h2><div class="moves" id="moves"><div class="empty">Nước đi sẽ hiện ở đây.</div></div></section>
 <section class="card"><h2>Luật chơi</h2><p class="note">Bạn cầm quân Trắng và đấu với bot ChessZuR bằng quân Đen. Chạm quân rồi chọn ô đích. Bot tự đi sau lượt của bạn. Hỗ trợ nhập thành, bắt tốt qua đường và phong cấp.</p></section>
