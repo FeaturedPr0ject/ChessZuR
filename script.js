@@ -2,7 +2,7 @@ import { Chess } from "https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.119.2";
 const game=new Chess();
 const $=id=>document.getElementById(id);
-const boardEl=$("board"),movesEl=$("moves");
+const boardEl=$("board"),movesEl=$("moves"),boardHome=boardEl.parentElement,boardHomeNext=boardEl.nextSibling;
 const pieceNames={k:"king",q:"queen",r:"rook",b:"bishop",n:"knight",p:"pawn"};
 let selected=null,targets=[],flipped=false,lastMove=null,botThinking=false,animateMove=null;
 let gameStarted=false,gameOverByClock=false,allowUnload=false,clockBase=300,increment=0,remaining={w:300000,b:300000},clockStamp=0,clockTimer=null,redoStack=[];
@@ -102,8 +102,8 @@ for(const key of ["boardTheme","pieceStyle"]){$(key).addEventListener("change",e
 for(const key of ["soundEnabled","vibrationEnabled"]){$(key).addEventListener("change",e=>{featureSettings[key]=e.target.checked;saveFeatureSettings()})}
 
 function showReplayPosition(){game.reset();for(const move of replayMoves.slice(0,replayIndex))game.move(move);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();$("replayCounter").textContent=replayIndex+" / "+replayMoves.length;$("replayPrev").disabled=replayIndex===0;$("replayNext").disabled=replayIndex===replayMoves.length;$("replayStatus").textContent=replayIndex===0?"Vị trí bắt đầu":replayIndex===replayMoves.length?"Đã đến nước cuối":"Đang xem lại ván đấu"}
-function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();stopClock();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;$("historyDialog").hidden=true;$("replayDialog").hidden=false;showReplayPosition()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
-function closeReplay(){replayMode=false;$("replayDialog").hidden=true;if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
+function startReplay(item){try{const parsed=new Chess();if(item.pgn)parsed.loadPgn(item.pgn);else{parsed.reset();for(const move of item.moves||[])parsed.move(move)}replayMoves=parsed.history({verbose:true}).map(m=>({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})}));replayReturnPgn=game.history().length?game.pgn():"";replayReturnFen=game.fen();stopClock();clearTimeout(botTimer);botThinking=false;replayMode=true;replayIndex=0;$("historyDialog").hidden=true;$("replayDialog").hidden=false;boardEl.classList.add("replay-board");$("replayBoardSlot").append(boardEl);showReplayPosition()}catch(error){alert("Không thể mở lại ván cờ này: "+error.message)}}
+function closeReplay(){replayMode=false;$("replayDialog").hidden=true;boardEl.classList.remove("replay-board");boardHome.insertBefore(boardEl,boardHomeNext);if(replayReturnPgn)game.loadPgn(replayReturnPgn);else game.load(replayReturnFen);lastMove=game.history({verbose:true}).at(-1)||null;selected=null;targets=[];render();if(gameStarted&&!game.isGameOver()&&!gameOverByClock){startClock();if(game.turn()==="b")scheduleBot()}}
 $("historyList").addEventListener("click",e=>{const btn=e.target.closest("[data-history]");if(!btn)return;const item=savedGames[Number(btn.dataset.history)];if(item)startReplay(item)});
 $("replayPrev").addEventListener("click",()=>{if(replayIndex>0){replayIndex--;showReplayPosition()}});
 $("replayNext").addEventListener("click",()=>{if(replayIndex<replayMoves.length){replayIndex++;showReplayPosition()}});
